@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use domain::user::{User, UserName};
 use domain::user_service::UserService;
 use repository::user_repository::{UserRepositoryInterface, UserRepository};
@@ -8,42 +10,43 @@ mod domain;
 mod repository;
 mod infrastructure;
 
-struct Program<'a> {
-    user_service: UserService<'a>,
-    user_repository: &'a dyn UserRepositoryInterface,
+struct Program {
+    user_repository: Box<dyn UserRepositoryInterface>,
 }
 
-impl Program<'_> {
-    fn new(repository: &dyn UserRepositoryInterface) -> Program {
+impl Program {
+    fn new(repository: Box<dyn UserRepositoryInterface>) -> Program {
         Program {
-            user_service: UserService::new(repository),
             user_repository: repository,
         }
     }
 
-    fn create_user(&self, user_name: &str) -> Result<()> {
+    async fn create_user(&self, user_name: &str) -> Result<()> {
         let user_name = UserName::new(user_name)?;
         let user = User::new(user_name)?;
+        let user_service = UserService::new(&*self.user_repository);
  
-        if self.user_service.exists(&user) {
+        if user_service.exists(&user).await {
             return Err(anyhow!("User already exists."));
         }
 
         println!("start saving...");
 
-        self.user_repository.save(&user);
-
-        println!("saved!");
+        match self.user_repository.save(&user).await {
+            Ok(_) => println!("saved!"),
+            Err(err) => println!("Unable to save: {:?}", err),
+        }
 
         Ok(())
     }
 }
 
-fn main() -> Result<()> {
+#[tokio::main]
+async fn main() -> Result<()> {
     println!("Start");
-    let user_repository = UserRepository::new();
-    let program = Program::new(&user_repository);
-    program.create_user("TaroMan")?;
+    let user_repository = UserRepository::new().await?;
+    let program = Program::new(Box::new(user_repository));
+    program.create_user("TaroMan").await?;
     println!("End");
     Ok(())
 }

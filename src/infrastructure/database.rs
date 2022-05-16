@@ -1,6 +1,7 @@
 use once_cell::sync::Lazy;
 
-struct Config {
+#[derive(Debug)]
+pub struct Config {
     postgres_host: String,
     postgres_port: String,
     postgres_user: String,
@@ -11,7 +12,7 @@ struct Config {
 impl Config {
     pub fn database_url(&self) -> String {
         format!(
-            "postgres//{}:{}@{}:{}/{}",
+            "postgres://{}:{}@{}:{}/{}",
             self.postgres_user,
             self.postgres_password,
             self.postgres_host,
@@ -22,9 +23,9 @@ impl Config {
 }
 
 pub static CONFIG: Lazy<Config> = Lazy::new(|| Config {
-    postgres_host: std::env::var("POSTGRES_HOST").unwrap(),
+    postgres_host: std::env::var("POSTGRES_HOSTNAME").unwrap(),
     postgres_port: std::env::var("POSTGRES_PORT").unwrap(),
     postgres_user: std::env::var("POSTGRES_USER").unwrap(),
-    postgres_password: std::env::var("POSTGRES_PASWORD").unwrap(),
+    postgres_password: std::env::var("POSTGRES_PASSWORD").unwrap(),
     postgres_database: std::env::var("POSTGRES_DB").unwrap(),
 });

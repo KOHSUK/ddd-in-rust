@@ -57,6 +57,14 @@ impl User {
         Ok(user)
     }
 
+    pub fn new_with_id(id: UserId, name: UserName) -> Result<User> {
+        let user = User {
+            id,
+            name
+        };
+        Ok(user)
+    }
+
     pub fn get_name(&self) -> UserName {
         self.name.clone()
     }
