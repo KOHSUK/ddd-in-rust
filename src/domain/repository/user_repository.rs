@@ -60,12 +60,37 @@ impl UserRepositoryInterface for UserRepository {
         }
     }
 
-    async fn delete(&self, user: &User) -> Result<()> {
+    async fn delete(&self, _: &User) -> Result<()> {
         unimplemented!();
     }
 
     async fn find_by_id(&self, id: &UserId) -> Option<User> {
-        unimplemented!();
+        let row =
+            sqlx::query_as::<_, Row>("select * from public.user where id = $1;")
+                .bind(id.to_str())
+                .fetch_one(&self.pool)
+                .await;
+
+        if row.is_err() {
+            return None;
+        }
+
+        let row = row.unwrap();
+
+        let user_id = UserId::new(&row.0.to_string());
+        let user_name = UserName::new(&row.1);
+
+        if user_id.is_err() || user_name.is_err() {
+            return None;
+        }
+
+        let user_id = user_id.unwrap();
+        let user_name = user_name.unwrap();
+
+        match User::new_with_id(user_id, user_name) {
+            Ok(user) => Some(user),
+            Err(_) => None,
+        }
     }
 }
 

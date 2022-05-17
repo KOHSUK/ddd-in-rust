@@ -15,6 +15,10 @@ impl UserId {
             value: _value.to_string()
         })
     }
+
+    pub fn to_str(&self) -> &str {
+        &self.value
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -67,5 +71,19 @@ impl User {
 
     pub fn get_name(&self) -> UserName {
         self.name.clone()
+    }
+
+    pub fn get_id(&self) -> UserId {
+        self.id.clone()
+    }
+
+    pub fn change_name(&mut self, name: UserName) -> Result<()> {
+        if name.to_str().is_empty() {
+            return Err(anyhow!("Name cannot be empty."));
+        }
+
+        self.name = name;
+
+        Ok(())
     }
 }
