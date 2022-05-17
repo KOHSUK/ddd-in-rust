@@ -1,13 +1,12 @@
 #![allow(dead_code)]
 
-use domain::user::{User, UserName};
-use domain::user_service::UserService;
-use repository::user_repository::{UserRepositoryInterface, UserRepository};
+use domain::entity::user::{User, UserName};
+use domain::entity::user_service::UserService;
+use domain::repository::user_repository::{UserRepositoryInterface, UserRepository};
 use anyhow::{ Result, anyhow };
 
 
 mod domain;
-mod repository;
 mod infrastructure;
 
 struct Program {

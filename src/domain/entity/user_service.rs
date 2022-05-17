@@ -1,4 +1,4 @@
-use crate::repository::user_repository::UserRepositoryInterface;
+use crate::domain::repository::user_repository::UserRepositoryInterface;
 
 use super::user::{User};
 

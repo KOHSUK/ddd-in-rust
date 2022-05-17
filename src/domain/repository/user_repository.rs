@@ -1,4 +1,4 @@
-use crate::domain::user::{User, UserId, UserName};
+use crate::domain::entity::user::{User, UserId, UserName};
 use crate::infrastructure::database::CONFIG;
 use anyhow::Result;
 
@@ -10,6 +10,8 @@ use sqlx::{self, postgres, Pool, Postgres};
 pub trait UserRepositoryInterface {
     async fn save(&self, user: &User) -> Result<()>;
     async fn find(&self, user_name: &UserName) -> Option<User>;
+    async fn find_by_id(&self, id: &UserId) -> Option<User>;
+    async fn delete(&self, user: &User) -> Result<()>;
 }
 
 pub struct UserRepository {
@@ -56,6 +58,14 @@ impl UserRepositoryInterface for UserRepository {
             Ok(user) => Some(user),
             Err(_) => None,
         }
+    }
+
+    async fn delete(&self, user: &User) -> Result<()> {
+        unimplemented!();
+    }
+
+    async fn find_by_id(&self, id: &UserId) -> Option<User> {
+        unimplemented!();
     }
 }
 
