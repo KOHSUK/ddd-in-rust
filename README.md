@@ -35,6 +35,8 @@ And then, run the command below
 
 ```sh
 
+export DATABASE_URL="postgres://$POSTGRES_USER:$POSTGRES_PASSWORD@$POSTGRES_HOSTNAME:$POSTGRES_PORT/$POSTGRES_DB"
+
 sqlx migrate run --source ./sql
 
 ```
