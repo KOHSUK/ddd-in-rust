@@ -45,6 +45,16 @@ impl UserUpdateCommand {
     }
 }
 
+pub struct UserDeleteCommand {
+    id: String,
+}
+
+impl UserDeleteCommand {
+    pub fn new(id: &str) -> Self {
+        Self { id: id.to_string() }
+    }
+}
+
 impl UserApplicationService {
     pub fn new(user_repository: Box<dyn UserRepositoryInterface>) -> Self {
         Self { user_repository }
@@ -78,7 +88,7 @@ impl UserApplicationService {
         let user = self.user_repository.find_by_id(&target_id).await;
         let mut user = match user {
             Some(u) => Ok(u),
-            None => Err(anyhow!("Cound not find the target user."))
+            None => Err(anyhow!("Could not find the target user."))
         }?;
 
         if let Some(name) = command.name {
@@ -92,5 +102,17 @@ impl UserApplicationService {
         }
 
         self.user_repository.save(&user).await
+    }
+
+    pub async fn delete(&self, command: UserDeleteCommand) -> Result<()> {
+        let target_id = UserId::new(&command.id)?;
+
+        let user = self.user_repository.find_by_id(&target_id).await;
+        let user = match user {
+            Some(u) => Ok(u),
+            None => Err(anyhow!("Could not find the target user."))
+        }?;
+
+        self.user_repository.delete(&user).await
     }
 }

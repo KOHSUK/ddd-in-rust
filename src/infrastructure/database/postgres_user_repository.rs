@@ -68,13 +68,20 @@ impl UserDatabase for PostgresUserRepository {
         Ok(data)
     }
 
-    async fn delete(&self, _: &UserData) -> Result<()> {
-        let _ = postgres::PgPoolOptions::new()
+    async fn delete(&self, user_data: &UserData) -> Result<()> {
+        let pool = postgres::PgPoolOptions::new()
             .max_connections(20)
             .connect(&CONFIG.database_url())
             .await?;
 
-        unimplemented!();
+        let user_id = user_data.0;
+
+        sqlx::query("delete from public.user where id = $1")
+            .bind(user_id)
+            .execute(&pool)
+            .await?;
+
+        Ok(())
     }
 
     async fn find_by_id(&self, id: &UserId) -> Result<UserData> {
