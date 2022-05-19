@@ -13,9 +13,9 @@ impl UserService<'_> {
         }
     }
 
-    pub async fn exists_by_name(&self, user: &User) -> bool {
+    pub async fn exists(&self, user: &User) -> bool {
         let name = user.get_name();
-        self.repository.find(&name).await.is_some()
+        self.repository.find_by_name(&name).await.is_some()
     }
 
     pub async fn exists_by_id(&self, user: &User) -> bool {

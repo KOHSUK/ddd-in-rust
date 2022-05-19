@@ -19,7 +19,7 @@ impl UserRepositoryInterface for UserRepository {
         Ok(())
     }
 
-    async fn find(&self, user_name: &UserName) -> Option<User> {
+    async fn find_by_name(&self, user_name: &UserName) -> Option<User> {
         let user_name = user_name.to_str().to_string();
         let row = self.database.find(&user_name).await;
 
