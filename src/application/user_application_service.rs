@@ -72,10 +72,11 @@ impl UserApplicationService {
     }
 
     pub async fn register(&self, name: &str) -> Result<()> {
-        let user_service = UserService::new(&*self.user_repository);
         let name = UserName::new(name)?;
         let user = User::new(name)?;
-        if user_service.exists(&user).await {
+
+        let user_service = UserService::new(&*self.user_repository);
+        if user_service.exists_by_name(&user).await {
             return Err(anyhow!("User already exists"));
         }
 
@@ -83,35 +84,32 @@ impl UserApplicationService {
     }
 
     pub async fn update(&self, command: UserUpdateCommand) -> Result<()> {
-        let target_id = UserId::new(&command.id)?;
-
-        let user = self.user_repository.find_by_id(&target_id).await;
-        let mut user = match user {
-            Some(u) => Ok(u),
-            None => Err(anyhow!("Could not find the target user."))
-        }?;
-
-        if let Some(name) = command.name {
-
+        if let (Some(name), id) = (command.name, command.id) {
             let user_service = UserService::new(&*self.user_repository);
-            let new_user_name = UserName::new(&name)?;
-            user.change_name(new_user_name)?;
-            if user_service.exists(&user).await {
-                return Err(anyhow!("User already exists"));
-            }
-        }
+            let name = UserName::new(&name)?;
+            let id = UserId::new(&id)?;
 
-        self.user_repository.save(&user).await
+            let user = User::new_with_id(id.clone(), name.clone())?;
+            if !user_service.exists_by_id(&user).await {
+                return Err(anyhow!("Could not find the target user."));
+            }
+
+            self.user_repository.save(&user).await
+        } else {
+            Err(anyhow!("Could not update."))
+        }
     }
 
     pub async fn delete(&self, command: UserDeleteCommand) -> Result<()> {
-        let target_id = UserId::new(&command.id)?;
+        let id = UserId::new(&command.id)?;
+        // TODO: works but tricky...
+        let name = UserName::new("")?;
+        let user = User::new_with_id(id, name)?;
 
-        let user = self.user_repository.find_by_id(&target_id).await;
-        let user = match user {
-            Some(u) => Ok(u),
-            None => Err(anyhow!("Could not find the target user."))
-        }?;
+        let user_service = UserService::new(&*self.user_repository);
+        if !user_service.exists_by_id(&user).await {
+            return Ok(())
+        }
 
         self.user_repository.delete(&user).await
     }
