@@ -69,7 +69,7 @@ impl UserDatabase for PostgresUserRepository {
     }
 
     async fn delete(&self, _: &UserData) -> Result<()> {
-        let pool = postgres::PgPoolOptions::new()
+        let _ = postgres::PgPoolOptions::new()
             .max_connections(20)
             .connect(&CONFIG.database_url())
             .await?;
