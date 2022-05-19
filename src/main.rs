@@ -22,7 +22,7 @@ impl Program {
         let user_database = PostgresUserRepository::new()?;
         let user_repository = UserRepository::new(Box::new(user_database)).await?;
         let service = UserRegisterService::new(Box::new(user_repository));
-        service.register(user_name).await?;
+        service.handle(user_name).await?;
 
         Ok(())
     }

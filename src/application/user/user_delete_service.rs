@@ -22,7 +22,7 @@ impl UserDeleteService {
         Self { user_repository }
     }
 
-    pub async fn delete(&self, command: UserDeleteCommand) -> Result<()> {
+    pub async fn handle(&self, command: UserDeleteCommand) -> Result<()> {
         let user_id = UserId::new(&command.id)?;
 
         match self.user_repository.find_by_id(&user_id).await {

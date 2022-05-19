@@ -33,7 +33,7 @@ impl UserGetInfoService {
         Self { user_repository }
     }
 
-    pub async fn get(&self, user_id: &str) -> Option<UserData> {
+    pub async fn handle(&self, user_id: &str) -> Option<UserData> {
         let target_id = UserId::new(user_id);
         if target_id.is_err() {
             return None;

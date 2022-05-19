@@ -27,7 +27,7 @@ impl UserUpdateInfoService {
         Self { user_repository }
     }
 
-    pub async fn update(&self, command: UserUpdateCommand) -> Result<()> {
+    pub async fn handle(&self, command: UserUpdateCommand) -> Result<()> {
         let target_id = UserId::new(&command.id)?;
         let user = self.user_repository.find_by_id(&target_id).await;
 

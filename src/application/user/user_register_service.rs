@@ -13,7 +13,7 @@ impl UserRegisterService {
         Self { user_repository }
     }
 
-    pub async fn register(&self, name: &str) -> Result<()> {
+    pub async fn handle(&self, name: &str) -> Result<()> {
         let name = UserName::new(name)?;
         let user = User::new(name)?;
 
