@@ -5,6 +5,7 @@ pub struct UserGetInfoService {
     user_repository: Box<dyn UserRepositoryInterface>,
 }
 
+#[derive(Debug)]
 pub struct UserData {
     id: String,
     name: String,

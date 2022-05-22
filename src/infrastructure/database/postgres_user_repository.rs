@@ -54,6 +54,21 @@ impl UserDatabase for PostgresUserRepository {
         Ok(())
     }
 
+    async fn update(&self, user: &UserData) -> Result<()> {
+        let pool = postgres::PgPoolOptions::new()
+            .max_connections(20)
+            .connect(&CONFIG.database_url())
+            .await?;
+
+        sqlx::query("update public.user set name = $2 where id = $1;")
+            .bind(user.0)
+            .bind(&user.1)
+            .execute(&pool)
+            .await?;
+
+        Ok(())
+    }
+
     async fn find(&self, user_name: &UserName) -> Result<UserData> {
         let pool = postgres::PgPoolOptions::new()
             .max_connections(20)
@@ -68,13 +83,11 @@ impl UserDatabase for PostgresUserRepository {
         Ok(data)
     }
 
-    async fn delete(&self, user_data: &UserData) -> Result<()> {
+    async fn delete(&self, user_id: &UserId) -> Result<()> {
         let pool = postgres::PgPoolOptions::new()
             .max_connections(20)
             .connect(&CONFIG.database_url())
             .await?;
-
-        let user_id = user_data.0;
 
         sqlx::query("delete from public.user where id = $1")
             .bind(user_id)
@@ -91,7 +104,7 @@ impl UserDatabase for PostgresUserRepository {
             .await?;
 
         let data =
-            sqlx::query_as::<_, UserData>("select * from public.user where id = $1;")
+            sqlx::query_as::<_, UserData>("select * from public.user where id::text = $1;")
                 .bind(id.to_string())
                 .fetch_one(&pool)
                 .await?;

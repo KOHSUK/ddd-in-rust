@@ -47,6 +47,6 @@ impl UserUpdateInfoService {
             }
         }
 
-        self.user_repository.save(&user).await
+        self.user_repository.update(&user).await
     }
 }
