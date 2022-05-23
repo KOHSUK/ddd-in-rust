@@ -1,10 +1,12 @@
+use std::sync::{Arc, Mutex};
+
 use crate::domain::entity::user::UserId;
 use crate::domain::repository::user_repository::UserRepositoryInterface;
 
 use anyhow::{Result};
 
 pub struct UserDeleteService {
-    user_repository: Box<dyn UserRepositoryInterface>,
+    user_repository: Arc<Mutex<dyn UserRepositoryInterface + Send + Sync>>,
 }
 
 pub struct UserDeleteCommand {
@@ -18,14 +20,15 @@ impl UserDeleteCommand {
 }
 
 impl UserDeleteService {
-    pub fn new(user_repository: Box<dyn UserRepositoryInterface>) -> Self {
+    pub fn new(user_repository: Arc<Mutex<dyn UserRepositoryInterface + Send + Sync>>) -> Self {
         Self { user_repository }
     }
 
     pub async fn handle(&self, command: UserDeleteCommand) -> Result<()> {
         let id = UserId::new(&command.id)?;
-        match self.user_repository.find_by_id(&id).await {
-            Some(_) => self.user_repository.delete(&id).await,
+        let repo = self.user_repository.lock().unwrap();
+        match repo.find_by_id(&id).await {
+            Some(_) => repo.delete(&id).await,
             None => Ok(())
         }
     }

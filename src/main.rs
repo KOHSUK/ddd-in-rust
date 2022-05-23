@@ -14,11 +14,11 @@ struct Program {
 }
 
 impl Program {
-    fn new() -> Program {
-        let command_line = CommandLine::new();
-        Program {
+    async fn new() -> Result<Self> {
+        let command_line = CommandLine::new().await?;
+        Ok(Self {
             command_line
-        }
+        })
     }
 
     async fn run(&self) -> Result<()> {
@@ -28,7 +28,7 @@ impl Program {
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let program = Program::new();
+    let program = Program::new().await?;
     if let Err(e) = program.run().await {
         eprintln!("Error: {}", e);
     }

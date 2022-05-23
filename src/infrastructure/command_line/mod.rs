@@ -1,22 +1,19 @@
 use clap::{ Parser, ArgEnum };
 use anyhow::{ Result, anyhow };
 
-use crate::application::user::user_delete_service::{UserDeleteService, UserDeleteCommand};
-use crate::application::user::user_get_info_service::UserGetInfoService;
-use crate::application::user::user_register_service::UserRegisterService;
-use crate::application::user::user_update_info_service::{UserUpdateInfoService, UserUpdateCommand};
-use crate::interface::repository::{user_repository::UserRepository};
-use crate::infrastructure::database::postgres_user_repository::PostgresUserRepository;
+use crate::interface::controller::user_controller::{UserController, PostArgs, GetArgs, PutArgs, DeleteArgs};
 
 pub struct CommandLine {
     args: Args,
+    user_controller: UserController,
 }
 
 impl CommandLine {
-    pub fn new() -> Self {
+    pub async fn new() -> Result<Self> {
         let args = Args::parse();
+        let user_controller = UserController::new().await?;
 
-        Self { args }
+        Ok(Self { args, user_controller })
     }    
 
     pub async fn start(&self) -> Result<()> {
@@ -37,23 +34,18 @@ impl CommandLine {
     }
 
     async fn create(&self) -> Result<()> {
-        let user_database = PostgresUserRepository::new()?;
-        let user_repository = UserRepository::new(Box::new(user_database)).await?;
-        let service = UserRegisterService::new(Box::new(user_repository));
         if let Some(name) = self.args.name.as_ref() {
-            service.handle(name).await
+            self.user_controller.post(PostArgs { name: name.to_string() }).await
         } else {
             Err(anyhow!("`name` option is required."))
         }
     }
 
     async fn read(&self) -> Result<()> {
-        let user_database = PostgresUserRepository::new()?;
-        let user_repository = UserRepository::new(Box::new(user_database)).await?;
-        let service = UserGetInfoService::new(Box::new(user_repository));
         if let Some(id) = self.args.id.as_ref() {
             println!("id: {}", id);
-            if let Some(user) = service.handle(id).await {
+            let args = GetArgs { id: id.to_string() };
+            if let Some(user) = self.user_controller.get(args).await {
                 println!("{:?}", user);
             } else {
                 println!("Could not find user.");
@@ -65,13 +57,10 @@ impl CommandLine {
     }
 
     async fn update(&self) -> Result<()> {
-        let user_database = PostgresUserRepository::new()?;
-        let user_repository = UserRepository::new(Box::new(user_database)).await?;
-        let service = UserUpdateInfoService::new(Box::new(user_repository));
         if let Some(id) = self.args.id.as_ref() {
             if let Some(name) = self.args.name.as_ref() {
-                let command = UserUpdateCommand::new(id, Some(name));
-                service.handle(command).await
+                let args = PutArgs { id: id.to_string(), name: name.to_string() };
+                self.user_controller.put(args).await
             } else {
                 Err(anyhow!("`id` option id required."))
             }
@@ -81,12 +70,9 @@ impl CommandLine {
     }
 
     async fn delete(&self) -> Result<()> {
-        let user_database = PostgresUserRepository::new()?;
-        let user_repository = UserRepository::new(Box::new(user_database)).await?;
-        let service = UserDeleteService::new(Box::new(user_repository));
         if let Some(id) = self.args.id.as_ref() {
-            let command = UserDeleteCommand::new(id);
-            service.handle(command).await
+            let args = DeleteArgs { id: id.to_string() };
+            self.user_controller.delete(args).await
         } else {
             Err(anyhow!("`id` option is required."))
         }

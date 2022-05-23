@@ -1,8 +1,10 @@
+use std::sync::{Arc, Mutex};
+
 use crate::domain::entity::user::{User, UserId};
 use crate::domain::repository::user_repository::UserRepositoryInterface;
 
 pub struct UserGetInfoService {
-    user_repository: Box<dyn UserRepositoryInterface>,
+    user_repository: Arc<Mutex<dyn UserRepositoryInterface + Send + Sync>>,
 }
 
 #[derive(Debug)]
@@ -30,7 +32,7 @@ impl UserData {
 }
 
 impl UserGetInfoService {
-    pub fn new(user_repository: Box<dyn UserRepositoryInterface>) -> Self {
+    pub fn new(user_repository: Arc<Mutex<dyn UserRepositoryInterface + Send + Sync>>) -> Self {
         Self { user_repository }
     }
 
@@ -40,7 +42,8 @@ impl UserGetInfoService {
             return None;
         }
 
-        let user = self.user_repository.find_by_id(&target_id.unwrap()).await?;
+        let repo = self.user_repository.lock().unwrap();
+        let user = repo.find_by_id(&target_id.unwrap()).await?;
 
         Some(UserData::new(&user))
     }

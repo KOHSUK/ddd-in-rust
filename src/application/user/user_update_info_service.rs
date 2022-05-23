@@ -3,9 +3,10 @@ use crate::domain::entity::user_service::{UserService};
 use crate::domain::repository::user_repository::UserRepositoryInterface;
 
 use anyhow::{Result, anyhow};
+use std::sync::{Arc, Mutex};
 
 pub struct UserUpdateInfoService {
-    user_repository: Box<dyn UserRepositoryInterface>,
+    user_repository: Arc<Mutex<dyn UserRepositoryInterface + Send + Sync>>,
 }
 
 pub struct UserUpdateCommand {
@@ -23,13 +24,14 @@ impl UserUpdateCommand {
 }
 
 impl UserUpdateInfoService {
-    pub fn new(user_repository: Box<dyn UserRepositoryInterface>) -> Self {
+    pub fn new(user_repository: Arc<Mutex<dyn UserRepositoryInterface + Send + Sync>>) -> Self {
         Self { user_repository }
     }
 
     pub async fn handle(&self, command: UserUpdateCommand) -> Result<()> {
         let target_id = UserId::new(&command.id)?;
-        let user = self.user_repository.find_by_id(&target_id).await;
+        let repo = self.user_repository.lock().unwrap();
+        let user = repo.find_by_id(&target_id).await;
 
         if user.is_none() {
             return Err(anyhow!("Could not find the target user."));
@@ -41,12 +43,12 @@ impl UserUpdateInfoService {
             let new_user_name = UserName::new(&name)?;
             user.change_name(new_user_name)?;
 
-            let user_service = UserService::new(&*self.user_repository);
+            let user_service = UserService::new(&*repo);
             if user_service.exists(&user).await {
                 return Err(anyhow!("User already exists"));
             }
         }
 
-        self.user_repository.update(&user).await
+        repo.update(&user).await
     }
 }
