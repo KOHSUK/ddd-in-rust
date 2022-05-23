@@ -1,36 +1,26 @@
 #![allow(dead_code)]
 
-use infrastructure::{command_line::CommandLine};
-
-use anyhow::Result;
+use infrastructure::web_server::WebServer;
+// use infrastructure::command_line::CommandLine;
 
 mod application;
 mod domain;
 mod infrastructure;
 mod interface;
 
-struct Program {
-    command_line: CommandLine,
+#[actix_web::main]
+async fn main() -> std::io::Result<()> {
+    let server = WebServer::new();
+    server.run().await
 }
 
-impl Program {
-    async fn new() -> Result<Self> {
-        let command_line = CommandLine::new().await?;
-        Ok(Self {
-            command_line
-        })
-    }
 
-    async fn run(&self) -> Result<()> {
-        self.command_line.start().await
-    }
-}
-
-#[tokio::main]
-async fn main() -> Result<()> {
-    let program = Program::new().await?;
-    if let Err(e) = program.run().await {
-        eprintln!("Error: {}", e);
-    }
-    Ok(())
-}
+// #[tokio::main]
+// async fn main() -> Result<()> {
+//     let command_line = CommandLine::new().await?;
+//     
+//     if let Err(e) = command_line.start().await {
+//         eprintln!("Error: {}", e);
+//     }
+//     Ok(())
+// }
