@@ -8,6 +8,7 @@ use crate::application::user::{
     user_delete_service::UserDeleteService, user_get_info_service::UserGetInfoService,
     user_register_service::UserRegisterService, user_update_info_service::UserUpdateInfoService,
 };
+// use crate::infrastructure::database::in_memory_user_repository::InMemoryUserRepository;
 use crate::infrastructure::database::postgres_user_repository::PostgresUserRepository;
 use crate::interface::repository::user_repository::UserRepository;
 
@@ -43,6 +44,7 @@ pub struct PutArgs {
 
 impl UserController {
     pub async fn new() -> Result<Self> {
+        // let user_database = InMemoryUserRepository::new();
         let user_database = PostgresUserRepository::new()?;
         let user_repository = UserRepository::new(Box::new(user_database)).await?;
         let user_repository = Arc::new(Mutex::new(user_repository));
