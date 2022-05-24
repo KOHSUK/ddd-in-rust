@@ -13,8 +13,11 @@ pub struct UserRepository {
 #[async_trait]
 impl UserRepositoryInterface for UserRepository {
     async fn save(&self, user: &User) -> Result<()> {
-        let user_name = user.get_name().to_str().to_string();
-        self.database.save(&user_name).await?;
+        let id = user.get_id();
+        let id = Uuid::parse_str(id.to_str())?;
+        let name = user.get_name().to_str().to_string();
+        let user = (id, name);
+        self.database.save(&user).await?;
 
         Ok(())
     }

@@ -20,9 +20,9 @@ struct UserRow {
 }
 
 impl UserRow {
-    pub fn new(name: &str) -> Self {
+    pub fn new(id: Uuid, name: &str) -> Self {
         Self {
-            id: uuid::Uuid::new_v4().to_string(),
+            id: id.to_string(),
             name: name.to_string(),
         }
     }
@@ -41,8 +41,8 @@ impl InMemoryUserRepository {
 
 #[async_trait]
 impl UserDatabase for InMemoryUserRepository {
-    async fn save(&self, user_name: &UserName) -> Result<()> {
-        let row = UserRow::new(user_name);
+    async fn save(&self, user: &UserData) -> Result<()> {
+        let row = UserRow::new(user.0, &user.1);
         let mut table = STATIC_USER_TABLE.lock().await;
         table.insert(row.clone().id, row);
         table.iter().for_each(|r| { dbg!(r.1); });

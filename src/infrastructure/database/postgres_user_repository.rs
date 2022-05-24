@@ -40,13 +40,17 @@ pub struct PostgresUserRepository {
 
 #[async_trait]
 impl UserDatabase for PostgresUserRepository {
-    async fn save(&self, user_name: &UserName) -> Result<()> {
+    async fn save(&self, user: &UserData) -> Result<()> {
         let pool = postgres::PgPoolOptions::new()
             .max_connections(20)
             .connect(&CONFIG.database_url())
             .await?;
 
-        sqlx::query("insert into public.user (name) values ($1);")
+        let user_name = user.1.to_string();
+        let user_id = user.0;
+
+        sqlx::query("insert into public.user (id, name) values ($1, $2);")
+            .bind(user_id)
             .bind(user_name)
             .execute(&pool)
             .await?;

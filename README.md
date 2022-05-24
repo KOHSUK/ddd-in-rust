@@ -18,7 +18,7 @@ Add migration script like so:
 ```sql
 
 CREATE TABLE IF NOT EXISTS public.user (
-    id UUID NOT NULL PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID NOT NULL PRIMARY KEY,
     name TEXT NOT NULL
 );
 

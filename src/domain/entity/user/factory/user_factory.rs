@@ -13,7 +13,8 @@ impl UserFactory {
 
 impl UserFactoryInterface for UserFactory {
     fn create(&self, name: UserName) -> Result<User> {
-        let id = UserId::new("tmp_id").unwrap();
+        let id = uuid::Uuid::new_v4().to_string();
+        let id = UserId::new(&id).unwrap();
         User::new(id, name)
     }
 }
