@@ -1,6 +1,6 @@
 use std::sync::{Arc, Mutex};
 
-use crate::domain::entity::user::{User, UserId};
+use crate::domain::entity::user::model::{User, UserId};
 use crate::domain::repository::user_repository::UserRepositoryInterface;
 
 pub struct UserGetInfoService {

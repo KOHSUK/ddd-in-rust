@@ -1,5 +1,5 @@
-use crate::domain::entity::user::{UserId, UserName};
-use crate::domain::entity::user_service::{UserService};
+use crate::domain::entity::user::model::{ UserName, UserId };
+use crate::domain::entity::user::service::UserService;
 use crate::domain::repository::user_repository::UserRepositoryInterface;
 
 use anyhow::{Result, anyhow};

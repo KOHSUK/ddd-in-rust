@@ -1,6 +1,5 @@
 use crate::domain::repository::user_repository::UserRepositoryInterface;
-
-use super::user::{User};
+use crate::domain::entity::user::model::User;
 
 pub struct UserService<'a> {
     repository: &'a dyn UserRepositoryInterface,

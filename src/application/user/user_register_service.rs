@@ -1,5 +1,6 @@
-use crate::domain::entity::user::{User, UserName};
-use crate::domain::entity::user_service::{UserService};
+use crate::domain::entity::user::model::UserName;
+use crate::domain::entity::user::service::UserService;
+use crate::domain::entity::user::factory::{UserFactoryInterface};
 use crate::domain::repository::user_repository::UserRepositoryInterface;
 
 use anyhow::{Result, anyhow};
@@ -7,16 +8,21 @@ use std::sync::{Arc, Mutex};
 
 pub struct UserRegisterService {
     user_repository: Arc<Mutex<dyn UserRepositoryInterface + Send + Sync>>,
+    user_factory: Arc<Mutex<dyn UserFactoryInterface>>,
 }
 
 impl UserRegisterService {
-    pub fn new(user_repository: Arc<Mutex<dyn UserRepositoryInterface + Send + Sync>>) -> Self {
-        Self { user_repository }
+    pub fn new(
+        user_repository: Arc<Mutex<dyn UserRepositoryInterface + Send + Sync>>,
+        user_factory: Arc<Mutex<dyn UserFactoryInterface>>,
+    ) -> Self {
+        Self { user_repository, user_factory }
     }
 
     pub async fn handle(&self, name: &str) -> Result<()> {
         let name = UserName::new(name)?;
-        let user = User::new(name)?;
+        let factory = Arc::clone(&self.user_factory);
+        let user = factory.lock().unwrap().create(name)?;
 
         let repo = self.user_repository.lock().unwrap();
         let user_service = UserService::new(&*repo);
@@ -32,7 +38,8 @@ impl UserRegisterService {
 mod test {
     use std::sync::{Arc, Mutex};
 
-    use crate::domain::entity::user::UserName;
+    use crate::domain::entity::user::factory::UserFactory;
+    use crate::domain::entity::user::model::UserName;
     use crate::domain::repository::user_repository::UserRepositoryInterface;
     use crate::infrastructure::database::in_memory_user_repository::InMemoryUserRepository;
     use crate::interface::repository::user_repository::UserRepository;
@@ -48,7 +55,8 @@ mod test {
             .map(|repo| Arc::new(Mutex::new(repo)))
             .unwrap();
         let registry_repository = Arc::clone(&user_repository);
-        let user_register_service = UserRegisterService::new(registry_repository);
+        let user_factory = Arc::new(Mutex::new(UserFactory::new()));
+        let user_register_service = UserRegisterService::new(registry_repository, user_factory);
 
         let min_name = "abc";
         user_register_service.handle(min_name).await.unwrap();
@@ -69,7 +77,8 @@ mod test {
             .map(|repo| Arc::new(Mutex::new(repo)))
             .unwrap();
         let registry_repository = Arc::clone(&user_repository);
-        let user_register_service = UserRegisterService::new(registry_repository);
+        let user_factory = Arc::new(Mutex::new(UserFactory::new()));
+        let user_register_service = UserRegisterService::new(registry_repository, user_factory);
 
         let short_name = "ab";
         let error_msg = match user_register_service.handle(short_name).await {
@@ -89,7 +98,8 @@ mod test {
             .map(|repo| Arc::new(Mutex::new(repo)))
             .unwrap();
         let registry_repository = Arc::clone(&user_repository);
-        let user_register_service = UserRegisterService::new(registry_repository);
+        let user_factory = Arc::new(Mutex::new(UserFactory::new()));
+        let user_register_service = UserRegisterService::new(registry_repository, user_factory);
 
         let min_name = "duplicate";
         user_register_service.handle(min_name).await.unwrap();

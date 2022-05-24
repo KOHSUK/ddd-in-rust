@@ -1,4 +1,4 @@
-use crate::domain::entity::user::{User, UserId, UserName};
+use crate::domain::entity::user::model::{User, UserId, UserName};
 use anyhow::Result;
 
 use async_trait::async_trait;

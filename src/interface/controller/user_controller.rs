@@ -1,13 +1,12 @@
 use std::sync::{Arc, Mutex};
 
-use anyhow::{Result};
+use anyhow::Result;
 
-use crate::application::user::user_delete_service::UserDeleteCommand;
-use crate::application::user::user_update_info_service::UserUpdateCommand;
 use crate::application::user::{
-    user_delete_service::UserDeleteService, user_get_info_service::UserGetInfoService,
-    user_register_service::UserRegisterService, user_update_info_service::UserUpdateInfoService,
+    UserDeleteCommand, UserDeleteService, UserGetInfoService, UserRegisterService,
+    UserUpdateCommand, UserUpdateInfoService,
 };
+use crate::domain::entity::user::factory::UserFactory;
 // use crate::infrastructure::database::in_memory_user_repository::InMemoryUserRepository;
 use crate::infrastructure::database::postgres_user_repository::PostgresUserRepository;
 use crate::interface::repository::user_repository::UserRepository;
@@ -48,6 +47,7 @@ impl UserController {
         let user_database = PostgresUserRepository::new()?;
         let user_repository = UserRepository::new(Box::new(user_database)).await?;
         let user_repository = Arc::new(Mutex::new(user_repository));
+        let user_factory = Arc::new(Mutex::new(UserFactory::new()));
 
         let deletion_repository = Arc::clone(&user_repository);
         let user_delete_service = UserDeleteService::new(deletion_repository);
@@ -56,7 +56,7 @@ impl UserController {
         let user_get_info_service = UserGetInfoService::new(read_repository);
 
         let registry_repository = Arc::clone(&user_repository);
-        let user_register_service = UserRegisterService::new(registry_repository);
+        let user_register_service = UserRegisterService::new(registry_repository, user_factory);
 
         let update_repository = Arc::clone(&user_repository);
         let user_update_info_service = UserUpdateInfoService::new(update_repository);
@@ -81,10 +81,11 @@ impl UserController {
     pub async fn get(&self, args: GetArgs) -> Option<GetResult> {
         self.user_get_info_service
             .handle(&args.id)
-            .await.map(|u| GetResult {
-                    id: u.get_id(),
-                    name: u.get_name(),
-                })
+            .await
+            .map(|u| GetResult {
+                id: u.get_id(),
+                name: u.get_name(),
+            })
     }
 
     pub async fn put(&self, args: PutArgs) -> Result<()> {

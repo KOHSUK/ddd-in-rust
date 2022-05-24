@@ -1,0 +1,19 @@
+use super::UserFactoryInterface;
+use crate::domain::entity::user::model::{ UserId, UserName, User };
+
+use anyhow::Result;
+
+pub struct UserFactory {}
+
+impl UserFactory {
+    pub fn new() -> Self {
+        Self {}
+    }
+}
+
+impl UserFactoryInterface for UserFactory {
+    fn create(&self, name: UserName) -> Result<User> {
+        let id = UserId::new("tmp_id").unwrap();
+        User::new(id, name)
+    }
+}

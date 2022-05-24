@@ -1,4 +1,4 @@
-use crate::domain::entity::user::{User, UserId, UserName};
+use crate::domain::entity::user::model::{User, UserId, UserName};
 use crate::domain::repository::user_repository::UserRepositoryInterface;
 use crate::interface::repository::user_database::{UserDatabase};
 
@@ -49,7 +49,7 @@ impl UserRepositoryInterface for UserRepository {
         let user_id = user_id.unwrap();
         let user_name = user_name.unwrap();
 
-        match User::new_with_id(user_id, user_name) {
+        match User::new(user_id, user_name) {
             Ok(user) => Some(user),
             Err(_) => None,
         }
@@ -89,7 +89,7 @@ impl UserRepositoryInterface for UserRepository {
         let user_id = user_id.unwrap();
         let user_name = user_name.unwrap();
 
-        match User::new_with_id(user_id, user_name) {
+        match User::new(user_id, user_name) {
             Ok(user) => Some(user),
             Err(_) => None,
         }

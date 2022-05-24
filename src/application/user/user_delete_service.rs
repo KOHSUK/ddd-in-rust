@@ -1,6 +1,6 @@
 use std::sync::{Arc, Mutex};
 
-use crate::domain::entity::user::UserId;
+use crate::domain::entity::user::model::UserId;
 use crate::domain::repository::user_repository::UserRepositoryInterface;
 
 use anyhow::{Result};
