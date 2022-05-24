@@ -32,7 +32,7 @@ impl UserName {
             return Err(anyhow!("User name cannot be empty."));
         }
         if _value.len() < 3 {
-            return Err(anyhow!("The length of an user name must be greater than 3"));
+            return Err(anyhow!("The length of a user name must be greater than 3"));
         }
         Ok(UserName {
             value: _value.to_string()
