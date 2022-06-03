@@ -6,10 +6,10 @@ use crate::application::user::{
     UserDeleteCommand, UserDeleteService, UserGetInfoService, UserRegisterService,
     UserUpdateCommand, UserUpdateInfoService,
 };
-use crate::domain::entity::user::factory::UserFactory;
-// use crate::infrastructure::database::in_memory_user_repository::InMemoryUserRepository;
-use crate::infrastructure::database::postgres_user_repository::PostgresUserRepository;
-use crate::interface::repository::user_repository::UserRepository;
+use crate::domain::model::user::factory::UserFactory;
+// use crate::infrastructure::database::user::InMemoryUserDatabase;
+use crate::infrastructure::database::user::PostgresUserDatabase;
+use crate::interface::repository::user::UserRepository;
 
 pub struct UserController {
     user_delete_service: UserDeleteService,
@@ -44,7 +44,7 @@ pub struct PutArgs {
 impl UserController {
     pub async fn new() -> Result<Self> {
         // let user_database = InMemoryUserRepository::new();
-        let user_database = PostgresUserRepository::new()?;
+        let user_database = PostgresUserDatabase::new()?;
         let user_repository = UserRepository::new(Box::new(user_database)).await?;
         let user_repository = Arc::new(Mutex::new(user_repository));
         let user_factory = Arc::new(Mutex::new(UserFactory::new()));

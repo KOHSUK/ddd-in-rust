@@ -1,5 +1,5 @@
 use super::UserFactoryInterface;
-use crate::domain::entity::user::model::{ UserId, UserName, User };
+use crate::domain::model::user::entity::{ UserId, UserName, User };
 
 use anyhow::Result;
 

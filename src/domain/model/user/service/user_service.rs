@@ -1,12 +1,12 @@
-use crate::domain::repository::user_repository::UserRepositoryInterface;
-use crate::domain::entity::user::model::User;
+use crate::domain::repository::user_repository_trait::UserRepositoryTrait;
+use crate::domain::model::user::entity::User;
 
 pub struct UserService<'a> {
-    repository: &'a dyn UserRepositoryInterface,
+    repository: &'a dyn UserRepositoryTrait,
 }
 
 impl UserService<'_> {
-    pub fn new(repository: &dyn UserRepositoryInterface) -> UserService {
+    pub fn new(repository: &dyn UserRepositoryTrait) -> UserService {
         UserService {
             repository,
         }

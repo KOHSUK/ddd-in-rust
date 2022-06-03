@@ -1,4 +1,4 @@
-use crate::interface::repository::user_database::{UserId, UserName, UserData, UserDatabase};
+use crate::interface::repository::user::{UserId, UserName, UserData, UserDatabaseTrait};
 
 use anyhow::Result;
 use async_trait::async_trait;
@@ -35,11 +35,11 @@ pub static CONFIG: Lazy<Config> = Lazy::new(|| Config {
     postgres_database: std::env::var("POSTGRES_DB").unwrap(),
 });
 
-pub struct PostgresUserRepository {
+pub struct PostgresUserDatabase {
 }
 
 #[async_trait]
-impl UserDatabase for PostgresUserRepository {
+impl UserDatabaseTrait for PostgresUserDatabase {
     async fn save(&self, user: &UserData) -> Result<()> {
         let pool = postgres::PgPoolOptions::new()
             .max_connections(20)
@@ -117,8 +117,8 @@ impl UserDatabase for PostgresUserRepository {
     }
 }
 
-impl PostgresUserRepository {
-    pub fn new() -> anyhow::Result<PostgresUserRepository> {
-        Ok(PostgresUserRepository { })
+impl PostgresUserDatabase {
+    pub fn new() -> anyhow::Result<PostgresUserDatabase> {
+        Ok(PostgresUserDatabase { })
     }
 }

@@ -1,3 +1,3 @@
 pub mod service;
-pub mod model;
+pub mod entity;
 pub mod factory;

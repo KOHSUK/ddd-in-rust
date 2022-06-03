@@ -1,10 +1,10 @@
-use crate::domain::entity::user::model::{User, UserId, UserName};
+use crate::domain::model::user::entity::{User, UserId, UserName};
 use anyhow::Result;
 
 use async_trait::async_trait;
 
 #[async_trait]
-pub trait UserRepositoryInterface {
+pub trait UserRepositoryTrait {
     async fn save(&self, user: &User) -> Result<()>;
     async fn update(&self, user: &User) -> Result<()>;
     async fn find_by_name(&self, user_name: &UserName) -> Option<User>;

@@ -1,17 +1,17 @@
-use crate::domain::entity::user::model::{User, UserId, UserName};
-use crate::domain::repository::user_repository::UserRepositoryInterface;
-use crate::interface::repository::user_database::{UserDatabase};
+use crate::domain::model::user::entity::{User, UserId, UserName};
+use crate::domain::repository::user_repository_trait::UserRepositoryTrait;
+use crate::interface::repository::user::{UserDatabaseTrait};
 
 use anyhow::Result;
 use async_trait::async_trait;
 use sqlx::types::Uuid;
 
 pub struct UserRepository {
-    database: Box<dyn UserDatabase + Sync + Send>,
+    database: Box<dyn UserDatabaseTrait + Sync + Send>,
 }
 
 #[async_trait]
-impl UserRepositoryInterface for UserRepository {
+impl UserRepositoryTrait for UserRepository {
     async fn save(&self, user: &User) -> Result<()> {
         let id = user.get_id();
         let id = Uuid::parse_str(id.to_str())?;
@@ -100,7 +100,7 @@ impl UserRepositoryInterface for UserRepository {
 }
 
 impl UserRepository {
-    pub async fn new(database: Box<dyn UserDatabase + Sync + Send>) -> anyhow::Result<UserRepository> {
+    pub async fn new(database: Box<dyn UserDatabaseTrait + Sync + Send>) -> anyhow::Result<UserRepository> {
         let repo = UserRepository { database };
 
         Ok(repo)

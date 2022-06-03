@@ -1,6 +1,6 @@
 use std::{collections::HashMap};
 
-use crate::interface::repository::user_database::{UserId, UserName, UserData, UserDatabase};
+use crate::interface::repository::user::{UserId, UserName, UserData, UserDatabaseTrait};
 
 use anyhow::{ Result, anyhow, Ok };
 use async_trait::async_trait;
@@ -30,17 +30,17 @@ impl UserRow {
 
 type UserTable = HashMap<String, UserRow>;
 
-pub struct InMemoryUserRepository {
+pub struct InMemoryUserDatabase {
 }
 
-impl InMemoryUserRepository {
+impl InMemoryUserDatabase {
     pub fn new() -> Self {
         Self {}
     }
 }
 
 #[async_trait]
-impl UserDatabase for InMemoryUserRepository {
+impl UserDatabaseTrait for InMemoryUserDatabase {
     async fn save(&self, user: &UserData) -> Result<()> {
         let row = UserRow::new(user.0, &user.1);
         let mut table = STATIC_USER_TABLE.lock().await;

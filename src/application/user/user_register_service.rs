@@ -1,19 +1,19 @@
-use crate::domain::entity::user::model::UserName;
-use crate::domain::entity::user::service::UserService;
-use crate::domain::entity::user::factory::{UserFactoryInterface};
-use crate::domain::repository::user_repository::UserRepositoryInterface;
+use crate::domain::model::user::entity::UserName;
+use crate::domain::model::user::service::UserService;
+use crate::domain::model::user::factory::{UserFactoryInterface};
+use crate::domain::repository::user_repository_trait::UserRepositoryTrait;
 
 use anyhow::{Result, anyhow};
 use std::sync::{Arc, Mutex};
 
 pub struct UserRegisterService {
-    user_repository: Arc<Mutex<dyn UserRepositoryInterface + Send + Sync>>,
+    user_repository: Arc<Mutex<dyn UserRepositoryTrait + Send + Sync>>,
     user_factory: Arc<Mutex<dyn UserFactoryInterface>>,
 }
 
 impl UserRegisterService {
     pub fn new(
-        user_repository: Arc<Mutex<dyn UserRepositoryInterface + Send + Sync>>,
+        user_repository: Arc<Mutex<dyn UserRepositoryTrait + Send + Sync>>,
         user_factory: Arc<Mutex<dyn UserFactoryInterface>>,
     ) -> Self {
         Self { user_repository, user_factory }
@@ -38,17 +38,17 @@ impl UserRegisterService {
 mod test {
     use std::sync::{Arc, Mutex};
 
-    use crate::domain::entity::user::factory::UserFactory;
-    use crate::domain::entity::user::model::UserName;
-    use crate::domain::repository::user_repository::UserRepositoryInterface;
-    use crate::infrastructure::database::in_memory_user_repository::InMemoryUserRepository;
-    use crate::interface::repository::user_repository::UserRepository;
+    use crate::domain::model::user::factory::UserFactory;
+    use crate::domain::model::user::entity::UserName;
+    use crate::domain::repository::user_repository_trait::UserRepositoryTrait;
+    use crate::infrastructure::database::user::InMemoryUserDatabase;
+    use crate::interface::repository::user::UserRepository;
 
     use super::UserRegisterService;
 
     #[tokio::test]
     async fn can_register_min_user_name() {
-        let user_database = InMemoryUserRepository::new();
+        let user_database = InMemoryUserDatabase::new();
         let user_repository =
             UserRepository::new(Box::new(user_database))
             .await
@@ -70,7 +70,7 @@ mod test {
 
     #[tokio::test]
     async fn cannot_register_name_shorter_than_min_length() {
-        let user_database = InMemoryUserRepository::new();
+        let user_database = InMemoryUserDatabase::new();
         let user_repository =
             UserRepository::new(Box::new(user_database))
             .await
@@ -91,7 +91,7 @@ mod test {
 
     #[tokio::test]
     async fn cannot_register_dupulicate_name() {
-        let user_database = InMemoryUserRepository::new();
+        let user_database = InMemoryUserDatabase::new();
         let user_repository =
             UserRepository::new(Box::new(user_database))
             .await

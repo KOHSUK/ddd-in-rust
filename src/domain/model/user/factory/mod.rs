@@ -2,7 +2,7 @@ mod user_factory;
 
 pub use user_factory::UserFactory;
 
-use super::model::{ User, UserName };
+use super::entity::{ User, UserName };
 use anyhow::Result;
 
 pub trait UserFactoryInterface {

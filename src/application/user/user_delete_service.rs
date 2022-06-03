@@ -1,12 +1,12 @@
 use std::sync::{Arc, Mutex};
 
-use crate::domain::entity::user::model::UserId;
-use crate::domain::repository::user_repository::UserRepositoryInterface;
+use crate::domain::model::user::entity::UserId;
+use crate::domain::repository::user_repository_trait::UserRepositoryTrait;
 
 use anyhow::{Result};
 
 pub struct UserDeleteService {
-    user_repository: Arc<Mutex<dyn UserRepositoryInterface + Send + Sync>>,
+    user_repository: Arc<Mutex<dyn UserRepositoryTrait + Send + Sync>>,
 }
 
 pub struct UserDeleteCommand {
@@ -20,7 +20,7 @@ impl UserDeleteCommand {
 }
 
 impl UserDeleteService {
-    pub fn new(user_repository: Arc<Mutex<dyn UserRepositoryInterface + Send + Sync>>) -> Self {
+    pub fn new(user_repository: Arc<Mutex<dyn UserRepositoryTrait + Send + Sync>>) -> Self {
         Self { user_repository }
     }
 

@@ -1,12 +1,12 @@
-use crate::domain::entity::user::model::{ UserName, UserId };
-use crate::domain::entity::user::service::UserService;
-use crate::domain::repository::user_repository::UserRepositoryInterface;
+use crate::domain::model::user::entity::{ UserName, UserId };
+use crate::domain::model::user::service::UserService;
+use crate::domain::repository::user_repository_trait::UserRepositoryTrait;
 
 use anyhow::{Result, anyhow};
 use std::sync::{Arc, Mutex};
 
 pub struct UserUpdateInfoService {
-    user_repository: Arc<Mutex<dyn UserRepositoryInterface + Send + Sync>>,
+    user_repository: Arc<Mutex<dyn UserRepositoryTrait + Send + Sync>>,
 }
 
 pub struct UserUpdateCommand {
@@ -24,7 +24,7 @@ impl UserUpdateCommand {
 }
 
 impl UserUpdateInfoService {
-    pub fn new(user_repository: Arc<Mutex<dyn UserRepositoryInterface + Send + Sync>>) -> Self {
+    pub fn new(user_repository: Arc<Mutex<dyn UserRepositoryTrait + Send + Sync>>) -> Self {
         Self { user_repository }
     }
 
