@@ -1,8 +1,8 @@
-use crate::domain::model::user::entity::{ UserName, UserId };
+use crate::domain::model::user::entity::{UserId, UserName};
 use crate::domain::model::user::service::UserService;
 use crate::domain::repository::user_repository_trait::UserRepositoryTrait;
 
-use anyhow::{Result, anyhow};
+use anyhow::{anyhow, Result};
 use std::sync::{Arc, Mutex};
 
 pub struct UserUpdateInfoService {
@@ -31,13 +31,11 @@ impl UserUpdateInfoService {
     pub async fn handle(&self, command: UserUpdateCommand) -> Result<()> {
         let target_id = UserId::new(&command.id)?;
         let repo = self.user_repository.lock().unwrap();
-        let user = repo.find_by_id(&target_id).await;
 
-        if user.is_none() {
-            return Err(anyhow!("Could not find the target user."));
-        }
-
-        let mut user = user.unwrap();
+        let mut user = repo
+            .find_by_id(&target_id)
+            .await
+            .ok_or_else(|| anyhow!("Could not find the target user."))?;
 
         if let Some(name) = command.name {
             let new_user_name = UserName::new(&name)?;
@@ -49,6 +47,6 @@ impl UserUpdateInfoService {
             }
         }
 
-        repo.update(&user).await
+        repo.save(&user).await
     }
 }

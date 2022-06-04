@@ -45,15 +45,6 @@ impl UserDatabaseTrait for InMemoryUserDatabase {
         let row = UserRow::new(user.0, &user.1);
         let mut table = STATIC_USER_TABLE.lock().await;
         table.insert(row.clone().id, row);
-        table.iter().for_each(|r| { dbg!(r.1); });
-
-        Ok(())
-    }
-
-    async fn update(&self, user: &UserData) -> Result<()> {
-        let mut table = STATIC_USER_TABLE.lock().await;
-        let row = UserRow { id: user.clone().0.to_string(), name: user.clone().1 };
-        table.insert(row.clone().id, row);
 
         Ok(())
     }

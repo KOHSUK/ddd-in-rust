@@ -14,6 +14,7 @@ impl WebServer {
                 .service(post_user)
                 .service(post_user)
                 .service(delete_user)
+                .service(put_user)
         })
         .bind(("127.0.0.1", 8080))?
         .run()

@@ -49,24 +49,15 @@ impl UserDatabaseTrait for PostgresUserDatabase {
         let user_name = user.1.to_string();
         let user_id = user.0;
 
-        sqlx::query("insert into public.user (id, name) values ($1, $2);")
+        sqlx::query(
+            "
+insert into public.user (id, name) values ($1, $2)
+on conflict on constraint user_id_key
+do
+update set name = $2; 
+            ")
             .bind(user_id)
             .bind(user_name)
-            .execute(&pool)
-            .await?;
-
-        Ok(())
-    }
-
-    async fn update(&self, user: &UserData) -> Result<()> {
-        let pool = postgres::PgPoolOptions::new()
-            .max_connections(20)
-            .connect(&CONFIG.database_url())
-            .await?;
-
-        sqlx::query("update public.user set name = $2 where id = $1;")
-            .bind(user.0)
-            .bind(&user.1)
             .execute(&pool)
             .await?;
 

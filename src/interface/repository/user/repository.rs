@@ -22,16 +22,6 @@ impl UserRepositoryTrait for UserRepository {
         Ok(())
     }
 
-    async fn update(&self, user: &User) -> Result<()> {
-        let id = user.get_id();
-        let id = Uuid::parse_str(id.to_str())?;
-        let name = user.get_name().to_str().to_string();
-        let user = (id, name);
-        self.database.update(&user).await?;
-
-        Ok(())
-    }
-
     async fn find_by_name(&self, user_name: &UserName) -> Option<User> {
         let user_name = user_name.to_str().to_string();
         let row = self.database.find(&user_name).await;
