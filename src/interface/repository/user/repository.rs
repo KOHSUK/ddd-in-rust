@@ -1,6 +1,8 @@
-use crate::domain::model::user::entity::{User, UserId, UserName};
-use crate::domain::repository::user_repository_trait::UserRepositoryTrait;
-use crate::interface::repository::user::{UserDatabaseTrait};
+use crate::domain::model::user::{
+    entity::{User, UserId, UserName},
+    repository::UserRepositoryTrait,
+};
+use crate::interface::repository::user::UserDatabaseTrait;
 
 use anyhow::Result;
 use async_trait::async_trait;
@@ -90,7 +92,9 @@ impl UserRepositoryTrait for UserRepository {
 }
 
 impl UserRepository {
-    pub async fn new(database: Box<dyn UserDatabaseTrait + Sync + Send>) -> anyhow::Result<UserRepository> {
+    pub async fn new(
+        database: Box<dyn UserDatabaseTrait + Sync + Send>,
+    ) -> anyhow::Result<UserRepository> {
         let repo = UserRepository { database };
 
         Ok(repo)

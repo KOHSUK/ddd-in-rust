@@ -1,7 +1,9 @@
 use std::sync::{Arc, Mutex};
 
-use crate::domain::model::user::entity::UserId;
-use crate::domain::repository::user_repository_trait::UserRepositoryTrait;
+use crate::domain::model::user::{
+    entity::UserId,
+    repository::UserRepositoryTrait,
+};
 
 use anyhow::{Result};
 

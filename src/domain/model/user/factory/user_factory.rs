@@ -1,4 +1,4 @@
-use super::UserFactoryInterface;
+use super::UserFactoryTrait;
 use crate::domain::model::user::entity::{ UserId, UserName, User };
 
 use anyhow::Result;
@@ -11,7 +11,7 @@ impl UserFactory {
     }
 }
 
-impl UserFactoryInterface for UserFactory {
+impl UserFactoryTrait for UserFactory {
     fn create(&self, name: UserName) -> Result<User> {
         let id = uuid::Uuid::new_v4().to_string();
         let id = UserId::new(&id).unwrap();

@@ -1,7 +1,9 @@
 use std::sync::{Arc, Mutex};
 
-use crate::domain::model::user::entity::{User, UserId};
-use crate::domain::repository::user_repository_trait::UserRepositoryTrait;
+use crate::domain::model::user::{
+    entity::{User, UserId},
+    repository::UserRepositoryTrait,
+};
 
 pub struct UserGetInfoService {
     user_repository: Arc<Mutex<dyn UserRepositoryTrait + Send + Sync>>,

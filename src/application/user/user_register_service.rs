@@ -1,20 +1,22 @@
-use crate::domain::model::user::entity::UserName;
-use crate::domain::model::user::service::UserService;
-use crate::domain::model::user::factory::{UserFactoryInterface};
-use crate::domain::repository::user_repository_trait::UserRepositoryTrait;
+use crate::domain::model::user::{
+    entity::UserName,
+    service::UserService,
+    factory::UserFactoryTrait,
+    repository::UserRepositoryTrait,
+};
 
 use anyhow::{Result, anyhow};
 use std::sync::{Arc, Mutex};
 
 pub struct UserRegisterService {
     user_repository: Arc<Mutex<dyn UserRepositoryTrait + Send + Sync>>,
-    user_factory: Arc<Mutex<dyn UserFactoryInterface>>,
+    user_factory: Arc<Mutex<dyn UserFactoryTrait>>,
 }
 
 impl UserRegisterService {
     pub fn new(
         user_repository: Arc<Mutex<dyn UserRepositoryTrait + Send + Sync>>,
-        user_factory: Arc<Mutex<dyn UserFactoryInterface>>,
+        user_factory: Arc<Mutex<dyn UserFactoryTrait>>,
     ) -> Self {
         Self { user_repository, user_factory }
     }
@@ -38,9 +40,11 @@ impl UserRegisterService {
 mod test {
     use std::sync::{Arc, Mutex};
 
-    use crate::domain::model::user::factory::UserFactory;
-    use crate::domain::model::user::entity::UserName;
-    use crate::domain::repository::user_repository_trait::UserRepositoryTrait;
+    use crate::domain::model::user::{
+        entity::UserName,
+        factory::UserFactory,
+        repository::UserRepositoryTrait,
+    };
     use crate::infrastructure::database::user::InMemoryUserDatabase;
     use crate::interface::repository::user::UserRepository;
 

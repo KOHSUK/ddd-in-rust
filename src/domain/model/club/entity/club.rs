@@ -1,18 +1,17 @@
 use anyhow::{Result};
 use validator::{Validate};
 
-use super::{UserId, UserName};
+use super::{ClubId, ClubName};
 
 #[derive(Debug, Clone, Validate)]
-pub struct User {
+pub struct Club {
     #[validate]
-    id: UserId,
-    #[validate]
-    name: UserName,
+    id: ClubId,
+    name: ClubName,
 }
 
-impl User {
-    pub fn new(id: UserId, name: UserName) -> Result<Self> {
+impl Club {
+    pub fn new(id: ClubId, name: ClubName) -> Result<Self> {
         let data = Self {
             id,
             name,
@@ -21,15 +20,15 @@ impl User {
         Ok(data)
     }
 
-    pub fn get_name(&self) -> &UserName {
+    pub fn get_name(&self) -> &ClubName {
         &self.name
     }
 
-    pub fn get_id(&self) -> &UserId {
+    pub fn get_id(&self) -> &ClubId {
         &self.id
     }
 
-    pub fn change_name(&mut self, name: UserName) -> Result<()> {
+    pub fn change_name(&mut self, name: ClubName) -> Result<()> {
         self.name = name;
         self.validate()?;
 

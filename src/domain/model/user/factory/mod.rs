@@ -1,10 +1,7 @@
 mod user_factory;
+mod user_factory_trait;
 
-pub use user_factory::UserFactory;
-
-use super::entity::{ User, UserName };
-use anyhow::Result;
-
-pub trait UserFactoryInterface {
-    fn create(&self, name: UserName) -> Result<User>;
-}
+pub use self::{
+    user_factory::UserFactory,
+    user_factory_trait::*,
+};

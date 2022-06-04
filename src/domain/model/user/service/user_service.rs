@@ -1,5 +1,7 @@
-use crate::domain::repository::user_repository_trait::UserRepositoryTrait;
-use crate::domain::model::user::entity::User;
+use crate::domain::model::user::{
+    entity::User,
+    repository::UserRepositoryTrait,
+};
 
 pub struct UserService<'a> {
     repository: &'a dyn UserRepositoryTrait,
@@ -14,11 +16,11 @@ impl UserService<'_> {
 
     pub async fn exists(&self, user: &User) -> bool {
         let name = user.get_name();
-        self.repository.find_by_name(&name).await.is_some()
+        self.repository.find_by_name(name).await.is_some()
     }
 
     pub async fn exists_by_id(&self, user: &User) -> bool {
         let id = user.get_id();
-        self.repository.find_by_id(&id).await.is_some()
+        self.repository.find_by_id(id).await.is_some()
     }
 }

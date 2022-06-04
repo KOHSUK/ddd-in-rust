@@ -1,18 +1,19 @@
-use anyhow::{Result, anyhow};
+use anyhow::{Result};
+use validator::{Validate};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Validate)]
 pub struct UserId {
+    #[validate(length(min = 1))]
     value: String,
 }
 
 impl UserId {
-    pub fn new(_value: &str) -> Result<UserId> {
-        if _value.is_empty() {
-            return Err(anyhow!("The ID cannot be empty"));
-        }
-        Ok(UserId {
-            value: _value.to_string()
-        })
+    pub fn new(value: &str) -> Result<Self> {
+        let data = Self {
+            value: value.to_string()
+        };
+        data.validate()?;
+        Ok(data)
     }
 
     pub fn to_str(&self) -> &str {

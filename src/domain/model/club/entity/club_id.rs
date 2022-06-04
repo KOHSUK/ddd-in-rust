@@ -2,12 +2,12 @@ use anyhow::{Result};
 use validator::{Validate};
 
 #[derive(Debug, Clone, Validate)]
-pub struct UserName {
-    #[validate(length(min = 3))]
+pub struct ClubId {
+    #[validate(length(min = 1))]
     value: String,
 }
 
-impl UserName {
+impl ClubId {
     pub fn new(value: &str) -> Result<Self> {
         let data = Self {
             value: value.to_string()

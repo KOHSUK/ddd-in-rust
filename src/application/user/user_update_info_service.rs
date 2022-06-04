@@ -1,6 +1,8 @@
-use crate::domain::model::user::entity::{UserId, UserName};
-use crate::domain::model::user::service::UserService;
-use crate::domain::repository::user_repository_trait::UserRepositoryTrait;
+use crate::domain::model::user::{
+    entity::{UserId, UserName},
+    service::UserService,
+    repository::UserRepositoryTrait,
+};
 
 use anyhow::{anyhow, Result};
 use std::sync::{Arc, Mutex};
