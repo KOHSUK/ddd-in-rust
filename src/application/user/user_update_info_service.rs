@@ -1,7 +1,7 @@
 use crate::domain::model::user::{
     entity::{UserId, UserName},
-    service::UserService,
     repository::UserRepositoryTrait,
+    service::UserService,
 };
 
 use anyhow::{anyhow, Result};
@@ -36,7 +36,7 @@ impl UserUpdateInfoService {
 
         let mut user = repo
             .find_by_id(&target_id)
-            .await
+            .await?
             .ok_or_else(|| anyhow!("Could not find the target user."))?;
 
         if let Some(name) = command.name {

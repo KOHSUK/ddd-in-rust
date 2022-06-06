@@ -1,11 +1,9 @@
 use crate::domain::model::user::{
-    entity::UserName,
+    entity::UserName, factory::UserFactoryTrait, repository::UserRepositoryTrait,
     service::UserService,
-    factory::UserFactoryTrait,
-    repository::UserRepositoryTrait,
 };
 
-use anyhow::{Result, anyhow};
+use anyhow::{anyhow, Result};
 use std::sync::{Arc, Mutex};
 
 pub struct UserRegisterService {
@@ -18,7 +16,10 @@ impl UserRegisterService {
         user_repository: Arc<Mutex<dyn UserRepositoryTrait + Send + Sync>>,
         user_factory: Arc<Mutex<dyn UserFactoryTrait>>,
     ) -> Self {
-        Self { user_repository, user_factory }
+        Self {
+            user_repository,
+            user_factory,
+        }
     }
 
     pub async fn handle(&self, name: &str) -> Result<()> {
@@ -41,9 +42,7 @@ mod test {
     use std::sync::{Arc, Mutex};
 
     use crate::domain::model::user::{
-        entity::UserName,
-        factory::UserFactory,
-        repository::UserRepositoryTrait,
+        entity::UserName, factory::UserFactory, repository::UserRepositoryTrait,
     };
     use crate::infrastructure::database::user::InMemoryUserDatabase;
     use crate::interface::repository::user::UserRepository;
@@ -53,8 +52,7 @@ mod test {
     #[tokio::test]
     async fn can_register_min_user_name() {
         let user_database = InMemoryUserDatabase::new();
-        let user_repository =
-            UserRepository::new(Box::new(user_database))
+        let user_repository = UserRepository::new(Box::new(user_database))
             .await
             .map(|repo| Arc::new(Mutex::new(repo)))
             .unwrap();
@@ -67,16 +65,23 @@ mod test {
 
         let read_repository = Arc::clone(&user_repository);
         let target_name = UserName::new(min_name).unwrap();
-        let target = read_repository.lock().unwrap().find_by_name(&target_name).await;
+        let target = read_repository
+            .lock()
+            .unwrap()
+            .find_by_name(&target_name)
+            .await;
+        let res = match target {
+            Ok(x) => x.is_some(),
+            Err(_) => false,
+        };
 
-        assert!(target.is_some());
+        assert!(res);
     }
 
     #[tokio::test]
     async fn cannot_register_name_shorter_than_min_length() {
         let user_database = InMemoryUserDatabase::new();
-        let user_repository =
-            UserRepository::new(Box::new(user_database))
+        let user_repository = UserRepository::new(Box::new(user_database))
             .await
             .map(|repo| Arc::new(Mutex::new(repo)))
             .unwrap();
@@ -90,14 +95,16 @@ mod test {
             Err(e) => e.to_string(),
         };
 
-        assert_eq!(&error_msg, "The length of a user name must be greater than 3");
+        assert_eq!(
+            &error_msg,
+            "The length of a user name must be greater than 3"
+        );
     }
 
     #[tokio::test]
     async fn cannot_register_dupulicate_name() {
         let user_database = InMemoryUserDatabase::new();
-        let user_repository =
-            UserRepository::new(Box::new(user_database))
+        let user_repository = UserRepository::new(Box::new(user_database))
             .await
             .map(|repo| Arc::new(Mutex::new(repo)))
             .unwrap();

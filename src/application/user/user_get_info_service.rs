@@ -1,3 +1,4 @@
+use anyhow::Result;
 use std::sync::{Arc, Mutex};
 
 use crate::domain::model::user::{
@@ -21,8 +22,8 @@ impl UserData {
         let name = user.get_name();
 
         Self {
-            id: id.to_str().to_string(),
-            name: name.to_str().to_string(),
+            id: id.to_string(),
+            name: name.to_string(),
         }
     }
     pub fn get_id(&self) -> String {
@@ -38,15 +39,12 @@ impl UserGetInfoService {
         Self { user_repository }
     }
 
-    pub async fn handle(&self, user_id: &str) -> Option<UserData> {
-        let target_id = UserId::new(user_id);
-        if target_id.is_err() {
-            return None;
-        }
+    pub async fn handle(&self, user_id: &str) -> Result<Option<UserData>> {
+        let target_id = UserId::new(user_id)?;
 
         let repo = self.user_repository.lock().unwrap();
-        let user = repo.find_by_id(&target_id.unwrap()).await?;
-
-        Some(UserData::new(&user))
+        repo.find_by_id(&target_id)
+            .await
+            .map(|x| x.map(|user| UserData::new(&user)))
     }
 }

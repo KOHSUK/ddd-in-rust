@@ -1,8 +1,10 @@
-use actix_web::{get, post, delete, put, web, App, HttpResponse, HttpServer, Responder};
+use actix_web::{delete, get, post, put, web, App, HttpResponse, HttpServer, Responder};
+use serde::{Deserialize, Serialize};
 use std::io;
-use serde::{ Serialize, Deserialize };
 
-use crate::interface::controller::user_controller::{UserController, GetArgs, PostArgs, DeleteArgs, PutArgs};
+use crate::interface::controller::user_controller::{
+    DeleteArgs, GetArgs, PostArgs, PutArgs, UserController,
+};
 
 pub struct WebServer;
 
@@ -39,11 +41,17 @@ async fn get_user(path: web::Path<(String,)>) -> impl Responder {
     let args = GetArgs { id };
     if let Ok(controller) = UserController::new().await {
         match controller.get(args).await {
-            Some(u) => {
-                let result = GetUserResult { id: u.id, name: u.name };
-                HttpResponse::Ok().body(serde_json::to_string(&result).unwrap())
+            Ok(u) => match u {
+                Some(u) => {
+                    let result = GetUserResult {
+                        id: u.id,
+                        name: u.name,
+                    };
+                    HttpResponse::Ok().body(serde_json::to_string(&result).unwrap())
+                }
+                None => HttpResponse::NotFound().body("Not Found"),
             },
-            None => HttpResponse::NotFound().body("Not Found"),
+            Err(e) => HttpResponse::InternalServerError().body(e.to_string()),
         }
     } else {
         HttpResponse::InternalServerError().body("Internal Server Error")
@@ -58,12 +66,12 @@ struct PostUserPayload {
 #[post("/user")]
 async fn post_user(body: web::Json<PostUserPayload>) -> impl Responder {
     if let Ok(controller) = UserController::new().await {
-        let args = PostArgs { name: body.name.to_owned() };
+        let args = PostArgs {
+            name: body.name.to_owned(),
+        };
         match controller.post(args).await {
-            Ok(_) => {
-                HttpResponse::Ok().body("OK")
-            },
-            Err(e) => HttpResponse::NotAcceptable().body(e.to_string())
+            Ok(_) => HttpResponse::Ok().body("OK"),
+            Err(e) => HttpResponse::NotAcceptable().body(e.to_string()),
         }
     } else {
         HttpResponse::InternalServerError().body("Internal Sever Error")
@@ -94,7 +102,10 @@ struct PutUserPayload {
 #[put("/user")]
 async fn put_user(body: web::Json<PutUserPayload>) -> impl Responder {
     if let Ok(controller) = UserController::new().await {
-        let args = PutArgs { id: body.id.to_owned() , name: body.name.to_owned() };
+        let args = PutArgs {
+            id: body.id.to_owned(),
+            name: body.name.to_owned(),
+        };
         match controller.put(args).await {
             Ok(_) => HttpResponse::Ok().body("OK"),
             Err(e) => HttpResponse::NotFound().body(e.to_string()),

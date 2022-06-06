@@ -78,13 +78,15 @@ impl UserController {
         self.user_delete_service.handle(command).await
     }
 
-    pub async fn get(&self, args: GetArgs) -> Option<GetResult> {
+    pub async fn get(&self, args: GetArgs) -> Result<Option<GetResult>> {
         self.user_get_info_service
             .handle(&args.id)
             .await
-            .map(|u| GetResult {
-                id: u.get_id(),
-                name: u.get_name(),
+            .map(|maybe_user| {
+                maybe_user.map(|u| GetResult {
+                    id: u.get_id(),
+                    name: u.get_name(),
+                })
             })
     }
 

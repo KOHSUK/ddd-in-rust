@@ -1,7 +1,9 @@
-use anyhow::{Result};
-use validator::{Validate};
+use std::fmt::Display;
 
-#[derive(Debug, Clone, Validate)]
+use anyhow::Result;
+use validator::Validate;
+
+#[derive(Debug, Clone, Validate, PartialEq, Eq)]
 pub struct ClubId {
     #[validate(length(min = 1))]
     value: String,
@@ -10,13 +12,15 @@ pub struct ClubId {
 impl ClubId {
     pub fn new(value: &str) -> Result<Self> {
         let data = Self {
-            value: value.to_string()
+            value: value.to_string(),
         };
         data.validate()?;
         Ok(data)
     }
+}
 
-    pub fn to_str(&self) -> &str {
-        &self.value
+impl Display for ClubId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.value)
     }
 }

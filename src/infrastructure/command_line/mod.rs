@@ -1,7 +1,9 @@
-use clap::{ Parser, ArgEnum };
-use anyhow::{ Result, anyhow };
+use anyhow::{anyhow, Result};
+use clap::{ArgEnum, Parser};
 
-use crate::interface::controller::user_controller::{UserController, PostArgs, GetArgs, PutArgs, DeleteArgs};
+use crate::interface::controller::user_controller::{
+    DeleteArgs, GetArgs, PostArgs, PutArgs, UserController,
+};
 
 pub struct CommandLine {
     args: Args,
@@ -13,29 +15,28 @@ impl CommandLine {
         let args = Args::parse();
         let user_controller = UserController::new().await?;
 
-        Ok(Self { args, user_controller })
-    }    
+        Ok(Self {
+            args,
+            user_controller,
+        })
+    }
 
     pub async fn start(&self) -> Result<()> {
         match self.args.operation {
-            Operation::Create => {
-                self.create().await
-            },
-            Operation::Read => {
-                self.read().await
-            },
-            Operation::Update => {
-                self.update().await
-            },
-            Operation::Delete => {
-                self.delete().await
-            },
+            Operation::Create => self.create().await,
+            Operation::Read => self.read().await,
+            Operation::Update => self.update().await,
+            Operation::Delete => self.delete().await,
         }
     }
 
     async fn create(&self) -> Result<()> {
         if let Some(name) = self.args.name.as_ref() {
-            self.user_controller.post(PostArgs { name: name.to_string() }).await
+            self.user_controller
+                .post(PostArgs {
+                    name: name.to_string(),
+                })
+                .await
         } else {
             Err(anyhow!("`name` option is required."))
         }
@@ -45,7 +46,7 @@ impl CommandLine {
         if let Some(id) = self.args.id.as_ref() {
             println!("id: {}", id);
             let args = GetArgs { id: id.to_string() };
-            if let Some(user) = self.user_controller.get(args).await {
+            if let Some(user) = self.user_controller.get(args).await? {
                 println!("{:?}", user);
             } else {
                 println!("Could not find user.");
@@ -59,7 +60,10 @@ impl CommandLine {
     async fn update(&self) -> Result<()> {
         if let Some(id) = self.args.id.as_ref() {
             if let Some(name) = self.args.name.as_ref() {
-                let args = PutArgs { id: id.to_string(), name: name.to_string() };
+                let args = PutArgs {
+                    id: id.to_string(),
+                    name: name.to_string(),
+                };
                 self.user_controller.put(args).await
             } else {
                 Err(anyhow!("`id` option id required."))
