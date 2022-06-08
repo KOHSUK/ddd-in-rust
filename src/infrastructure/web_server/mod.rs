@@ -2,8 +2,9 @@ use actix_web::{delete, get, post, put, web, App, HttpResponse, HttpServer, Resp
 use serde::{Deserialize, Serialize};
 use std::io;
 
-use crate::interface::controller::user_controller::{
-    DeleteArgs, GetArgs, PostArgs, PutArgs, UserController,
+use crate::interface::controller::{
+    club_controller::{ClubController, PostClubArgs, PostMemberArgs},
+    user_controller::{DeleteArgs, GetArgs, PostArgs, PutArgs, UserController},
 };
 
 pub struct WebServer;
@@ -109,6 +110,47 @@ async fn put_user(body: web::Json<PutUserPayload>) -> impl Responder {
         match controller.put(args).await {
             Ok(_) => HttpResponse::Ok().body("OK"),
             Err(e) => HttpResponse::NotFound().body(e.to_string()),
+        }
+    } else {
+        HttpResponse::InternalServerError().body("Internal Server Error")
+    }
+}
+
+#[derive(Deserialize)]
+struct PostClubPayload {
+    name: String,
+    user_id: String,
+}
+
+async fn post_club(body: web::Json<PostClubPayload>) -> impl Responder {
+    if let Ok(controller) = ClubController::new().await {
+        let args = PostClubArgs {
+            user_id: body.user_id.to_string(),
+            name: body.name.to_string(),
+        };
+        match controller.post_club(args).await {
+            Ok(_) => HttpResponse::Ok().body("OK"),
+            Err(e) => HttpResponse::NotFound().body(e.to_string()),
+        }
+    } else {
+        HttpResponse::InternalServerError().body("Internal Server Error")
+    }
+}
+
+struct PostMemberPayload {
+    club_id: String,
+    user_id: String,
+}
+
+async fn post_member(body: web::Json<PostMemberPayload>) -> impl Responder {
+    if let Ok(controller) = ClubController::new().await {
+        let args = PostMemberArgs {
+            club_id: body.club_id.to_string(),
+            user_id: body.user_id.to_string(),
+        };
+        match controller.post_member(args).await {
+            Ok(_) => HttpResponse::Ok().body("OK"),
+            Err(e) => HttpResponse::BadRequest().body(e.to_string()),
         }
     } else {
         HttpResponse::InternalServerError().body("Internal Server Error")
