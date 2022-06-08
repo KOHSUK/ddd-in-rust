@@ -9,10 +9,10 @@ use crate::domain::model::{
     user::{entity::UserId, repository::UserRepositoryTrait},
 };
 
-pub struct ClubCreateService<'a> {
+pub struct ClubCreateService {
     club_repository: Arc<Mutex<dyn ClubRepositoryTrait>>,
     club_factory: Arc<dyn ClubFactoryTrait>,
-    club_service: Arc<ClubService<'a>>,
+    club_service: Arc<ClubService>,
     user_repository: Arc<dyn UserRepositoryTrait>,
 }
 
@@ -30,11 +30,11 @@ impl ClubCreateCommand {
     }
 }
 
-impl<'a> ClubCreateService<'a> {
+impl<'a> ClubCreateService {
     pub fn new(
         club_repository: Arc<Mutex<dyn ClubRepositoryTrait>>,
         club_factory: Arc<dyn ClubFactoryTrait>,
-        club_service: Arc<ClubService<'a>>,
+        club_service: Arc<ClubService>,
         user_repository: Arc<dyn UserRepositoryTrait>,
     ) -> Self {
         Self {

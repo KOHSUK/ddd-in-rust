@@ -14,18 +14,27 @@ pub struct ClubJoinCommand {
     club_id: String,
 }
 
-pub struct ClubJoinService<'a> {
+impl ClubJoinCommand {
+    pub fn new(user_id: &str, club_id: &str) -> Self {
+        Self {
+            user_id: user_id.to_string(),
+            club_id: club_id.to_string(),
+        }
+    }
+}
+
+pub struct ClubJoinService {
     club_repository: Arc<Mutex<dyn ClubRepositoryTrait>>,
     club_factory: Arc<dyn ClubFactoryTrait>,
-    club_service: Arc<ClubService<'a>>,
+    club_service: Arc<ClubService>,
     user_repository: Arc<dyn UserRepositoryTrait>,
 }
 
-impl<'a> ClubJoinService<'a> {
+impl<'a> ClubJoinService {
     pub fn new(
         club_repository: Arc<Mutex<dyn ClubRepositoryTrait>>,
         club_factory: Arc<dyn ClubFactoryTrait>,
-        club_service: Arc<ClubService<'a>>,
+        club_service: Arc<ClubService>,
         user_repository: Arc<dyn UserRepositoryTrait>,
     ) -> Self {
         Self {

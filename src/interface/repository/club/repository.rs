@@ -25,6 +25,11 @@ impl<D: ClubDatabaseTrait + Send + Sync> ClubDatabaseTraitWrapper for D {
             &club.get_id().to_string(),
             &club.get_name().to_string(),
             &club.get_owner_id().to_string(),
+            &club
+                .get_members()
+                .iter()
+                .map(|m| m.to_string())
+                .collect::<Vec<String>>(),
         )?;
         self.save(&club).await
     }

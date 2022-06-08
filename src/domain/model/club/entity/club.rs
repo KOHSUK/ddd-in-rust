@@ -40,6 +40,10 @@ impl Club {
         &self.owner
     }
 
+    pub fn get_members(&self) -> &Vec<UserId> {
+        &self.members
+    }
+
     pub fn change_name(&mut self, name: ClubName) -> Result<()> {
         self.name = name;
         self.validate()?;
