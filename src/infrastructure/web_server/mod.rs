@@ -18,6 +18,9 @@ impl WebServer {
                 .service(post_user)
                 .service(delete_user)
                 .service(put_user)
+                .service(post_club)
+                .service(post_member)
+            // .route("/club/{id}/members", web::post().to(post_member))
         })
         .bind(("127.0.0.1", 8080))?
         .run()
@@ -122,6 +125,7 @@ struct PostClubPayload {
     user_id: String,
 }
 
+#[post("/club")]
 async fn post_club(body: web::Json<PostClubPayload>) -> impl Responder {
     if let Ok(controller) = ClubController::new().await {
         let args = PostClubArgs {
@@ -137,15 +141,20 @@ async fn post_club(body: web::Json<PostClubPayload>) -> impl Responder {
     }
 }
 
+#[derive(Deserialize)]
 struct PostMemberPayload {
-    club_id: String,
     user_id: String,
 }
 
-async fn post_member(body: web::Json<PostMemberPayload>) -> impl Responder {
+#[post("/club/{id}/members")]
+async fn post_member(
+    path: web::Path<(String,)>,
+    body: web::Json<PostMemberPayload>,
+) -> impl Responder {
+    let club_id = path.into_inner().0;
     if let Ok(controller) = ClubController::new().await {
         let args = PostMemberArgs {
-            club_id: body.club_id.to_string(),
+            club_id,
             user_id: body.user_id.to_string(),
         };
         match controller.post_member(args).await {

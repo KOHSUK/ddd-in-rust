@@ -15,7 +15,7 @@ impl ClubDatabaseTrait for PostgresClubDatabase {
     type ClubId = Uuid;
     type ClubName = String;
     type ClubMembers = Vec<String>;
-    type ClubOwner = String;
+    type ClubOwner = Uuid;
     type ClubData = (
         Self::ClubId,
         Self::ClubName,
@@ -30,7 +30,7 @@ impl ClubDatabaseTrait for PostgresClubDatabase {
         Ok(name.to_owned())
     }
     fn from_club_owner(owner: &Self::ClubOwner) -> Result<PrimitiveOwner> {
-        Ok(owner.to_owned())
+        Ok(owner.to_string())
     }
     fn from_club_members(members: &Self::ClubMembers) -> Result<PrimitiveMembers> {
         Ok(members.to_owned())
@@ -41,7 +41,7 @@ impl ClubDatabaseTrait for PostgresClubDatabase {
         let club = (
             club.0.to_string(),
             club.1.to_owned(),
-            club.2.to_owned(),
+            club.2.to_string(),
             club.3.to_owned(),
         );
         Ok(club)
@@ -54,7 +54,7 @@ impl ClubDatabaseTrait for PostgresClubDatabase {
         Ok(value.to_owned())
     }
     fn to_club_owner(value: &PrimitiveOwner) -> Result<Self::ClubOwner> {
-        Ok(value.to_owned())
+        Uuid::parse_str(value).map_err(|e| anyhow!(e.to_string()))
     }
     fn to_club_members(members: &PrimitiveMembers) -> Result<Self::ClubMembers> {
         Ok(members.to_owned())
@@ -78,7 +78,7 @@ impl ClubDatabaseTrait for PostgresClubDatabase {
 
         let id = club.0;
         let name = club.1.to_string();
-        let owner = club.2.to_string();
+        let owner = club.2;
         let members = &club.3;
 
         sqlx::query(
@@ -98,6 +98,7 @@ update set name = $2, owner = $3;
         let mut conn = self.pool.acquire().await?;
 
         for member in members {
+            let member = Uuid::parse_str(member)?;
             sqlx::query(
                 "
 insert into public.club_members (club_id, user_id) 
@@ -117,19 +118,19 @@ select $1, $2 where not exists (select 1 from public.club_members where club_id 
         let mut conn = self.pool.acquire().await?;
         type Id = Uuid;
         type Name = String;
-        type Owner = String;
+        type Owner = Uuid;
 
         let data = sqlx::query_as::<_, (Id, Name, Owner)>(
-            "select id, name, onwer from club where name = $1",
+            "select id, name, owner from club where name = $1",
         )
         .bind(club_name)
         .fetch_one(&mut *conn)
         .await?;
 
-        let club_id = data.0.to_string();
+        let club_id = data.0;
 
         #[derive(sqlx::FromRow)]
-        struct Response(String);
+        struct Response(Uuid);
 
         let members =
             sqlx::query_as::<_, Response>("select user_id from club_members where club_id = $1")
@@ -138,7 +139,7 @@ select $1, $2 where not exists (select 1 from public.club_members where club_id 
                 .await?;
         let members = members
             .iter()
-            .map(|m| m.0.to_owned())
+            .map(|m| m.0.to_string())
             .collect::<Vec<String>>();
 
         Ok((data.0, data.1, data.2, members))
@@ -148,19 +149,19 @@ select $1, $2 where not exists (select 1 from public.club_members where club_id 
         let mut conn = self.pool.acquire().await?;
         type Id = Uuid;
         type Name = String;
-        type Owner = String;
+        type Owner = Uuid;
 
-        let club_id = id.to_string();
+        let club_id = id;
 
         let data = sqlx::query_as::<_, (Id, Name, Owner)>(
-            "select id, name, onwer from club where id = $1",
+            "select id, name, owner from club where id = $1",
         )
-        .bind(club_id.clone())
+        .bind(club_id)
         .fetch_one(&mut *conn)
         .await?;
 
         #[derive(sqlx::FromRow)]
-        struct Response(String);
+        struct Response(Uuid);
 
         let members =
             sqlx::query_as::<_, Response>("select user_id from club_members where club_id = $1")
@@ -169,7 +170,7 @@ select $1, $2 where not exists (select 1 from public.club_members where club_id 
                 .await?;
         let members = members
             .iter()
-            .map(|m| m.0.to_owned())
+            .map(|m| m.0.to_string())
             .collect::<Vec<String>>();
 
         Ok((data.0, data.1, data.2, members))
