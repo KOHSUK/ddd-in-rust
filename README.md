@@ -40,7 +40,3 @@ export DATABASE_URL="postgres://$POSTGRES_USER:$POSTGRES_PASSWORD@$POSTGRES_HOST
 sqlx migrate run --source ./sql
 
 ```
-
-## References
-
-* https://zenn.dev/htlsne/articles/rust-sqlx-test
