@@ -1,12 +1,14 @@
 use std::sync::{Arc, Mutex};
 
 use anyhow::Result;
+use sqlx::postgres;
 
 use crate::application::user::{
     UserDeleteCommand, UserDeleteService, UserGetInfoService, UserRegisterService,
     UserUpdateCommand, UserUpdateInfoService,
 };
 use crate::domain::model::user::factory::UserFactory;
+use crate::infrastructure::database::shared::DATABASE_CONFIG;
 // use crate::infrastructure::database::user::InMemoryUserDatabase;
 use crate::infrastructure::database::user::PostgresUserDatabase;
 use crate::interface::repository::user::UserRepository;
@@ -43,8 +45,15 @@ pub struct PutArgs {
 
 impl UserController {
     pub async fn new() -> Result<Self> {
+        let pool = postgres::PgPoolOptions::new()
+            .max_connections(20)
+            .connect(&DATABASE_CONFIG.database_url())
+            .await?;
+        let pool = Arc::new(pool);
+
         // let user_database = InMemoryUserRepository::new();
-        let user_database = PostgresUserDatabase::new()?;
+        let pgpool = Arc::clone(&pool);
+        let user_database = PostgresUserDatabase::new(pgpool)?;
         let user_repository = UserRepository::new(Box::new(user_database)).await?;
         let user_repository = Arc::new(Mutex::new(user_repository));
         let user_factory = Arc::new(Mutex::new(UserFactory::new()));

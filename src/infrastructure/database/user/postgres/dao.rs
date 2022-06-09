@@ -1,13 +1,14 @@
-use crate::{
-    infrastructure::database::shared::DATABASE_CONFIG,
-    interface::repository::user::UserDatabaseTrait,
-};
+use std::sync::Arc;
+
+use crate::interface::repository::user::UserDatabaseTrait;
 
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
-use sqlx::{self, postgres, types::Uuid};
+use sqlx::{self, types::Uuid, Pool, Postgres};
 
-pub struct PostgresUserDatabase {}
+pub struct PostgresUserDatabase {
+    pool: Arc<Pool<Postgres>>,
+}
 
 #[async_trait]
 impl UserDatabaseTrait for PostgresUserDatabase {
@@ -37,10 +38,7 @@ impl UserDatabaseTrait for PostgresUserDatabase {
     }
 
     async fn save(&self, user: &Self::UserData) -> Result<()> {
-        let pool = postgres::PgPoolOptions::new()
-            .max_connections(20)
-            .connect(&DATABASE_CONFIG.database_url())
-            .await?;
+        let mut conn = self.pool.acquire().await?;
 
         let user_name = user.1.to_string();
         let user_id = user.0;
@@ -55,51 +53,42 @@ update set name = $2;
         )
         .bind(user_id)
         .bind(user_name)
-        .execute(&pool)
+        .execute(&mut conn)
         .await?;
 
         Ok(())
     }
 
     async fn find(&self, user_name: &Self::UserName) -> Result<Self::UserData> {
-        let pool = postgres::PgPoolOptions::new()
-            .max_connections(20)
-            .connect(&DATABASE_CONFIG.database_url())
-            .await?;
+        let mut conn = self.pool.acquire().await?;
 
         let data =
             sqlx::query_as::<_, Self::UserData>("select * from public.user where name = $1;")
                 .bind(user_name)
-                .fetch_one(&pool)
+                .fetch_one(&mut conn)
                 .await?;
 
         Ok(data)
     }
 
     async fn delete(&self, user_id: &Self::UserId) -> Result<()> {
-        let pool = postgres::PgPoolOptions::new()
-            .max_connections(20)
-            .connect(&DATABASE_CONFIG.database_url())
-            .await?;
+        let mut conn = self.pool.acquire().await?;
 
         sqlx::query("delete from public.user where id = $1")
             .bind(user_id)
-            .execute(&pool)
+            .execute(&mut conn)
             .await?;
 
         Ok(())
     }
 
     async fn find_by_id(&self, id: &Self::UserId) -> Result<Self::UserData> {
-        let pool = postgres::PgPoolOptions::new()
-            .max_connections(20)
-            .connect(&DATABASE_CONFIG.database_url())
-            .await?;
+        let mut conn = self.pool.acquire().await?;
 
         let data =
             sqlx::query_as::<_, Self::UserData>("select * from public.user where id::text = $1;")
                 .bind(id.to_string())
-                .fetch_one(&pool)
+                .fetch_one(&mut conn)
                 .await?;
 
         Ok(data)
@@ -107,7 +96,7 @@ update set name = $2;
 }
 
 impl PostgresUserDatabase {
-    pub fn new() -> anyhow::Result<PostgresUserDatabase> {
-        Ok(PostgresUserDatabase {})
+    pub fn new(pool: Arc<Pool<Postgres>>) -> anyhow::Result<PostgresUserDatabase> {
+        Ok(PostgresUserDatabase { pool })
     }
 }

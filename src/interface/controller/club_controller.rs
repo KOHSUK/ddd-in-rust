@@ -33,9 +33,11 @@ impl ClubController {
             .max_connections(20)
             .connect(&DATABASE_CONFIG.database_url())
             .await?;
+        let pool = Arc::new(pool);
 
+        let pgpool = Arc::clone(&pool);
         // repository
-        let club_database = Box::new(PostgresClubDatabase::new(pool)?);
+        let club_database = Box::new(PostgresClubDatabase::new(pgpool)?);
         let club_repository = ClubRepository::new(club_database).await?;
         let club_repository = Arc::new(Mutex::new(club_repository));
 
@@ -46,8 +48,9 @@ impl ClubController {
         let club_repo = Arc::clone(&club_repository);
         let club_service = Arc::new(ClubService::new(club_repo));
 
+        let pgpool = Arc::clone(&pool);
         // user repository
-        let user_database = PostgresUserDatabase::new()?;
+        let user_database = PostgresUserDatabase::new(pgpool)?;
         let user_repository = UserRepository::new(Box::new(user_database)).await?;
         let user_repository = Arc::new(user_repository);
 

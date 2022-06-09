@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use sqlx::{self, types::Uuid, Pool, Postgres};
@@ -7,7 +9,7 @@ use crate::interface::repository::club::{
 };
 
 pub struct PostgresClubDatabase {
-    pool: Pool<Postgres>,
+    pool: Arc<Pool<Postgres>>,
 }
 
 #[async_trait]
@@ -178,7 +180,7 @@ select $1, $2 where not exists (select 1 from public.club_members where club_id 
 }
 
 impl PostgresClubDatabase {
-    pub fn new(pool: Pool<Postgres>) -> anyhow::Result<Self> {
+    pub fn new(pool: Arc<Pool<Postgres>>) -> anyhow::Result<Self> {
         Ok(Self { pool })
     }
 }
