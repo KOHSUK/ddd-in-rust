@@ -51,8 +51,13 @@ impl Club {
         Ok(())
     }
 
+    pub fn count_members(&self) -> usize {
+        let owner_num = 1;
+        self.members.len() + owner_num
+    }
+
     pub fn is_full(&self) -> bool {
-        self.members.len() >= 29
+        self.count_members() >= 30
     }
 
     pub fn join(&mut self, user: User) -> Result<()> {

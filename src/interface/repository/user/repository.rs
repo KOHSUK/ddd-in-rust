@@ -1,5 +1,5 @@
 use crate::domain::model::user::{
-    entity::{User, UserId, UserName},
+    entity::{User, UserId, UserIsPremium, UserName},
     repository::UserRepositoryTrait,
 };
 use crate::interface::repository::user::UserDatabaseTrait;
@@ -18,7 +18,11 @@ pub trait UserDatabaseTraitWrapper {
 #[async_trait]
 impl<D: UserDatabaseTrait + Send + Sync> UserDatabaseTraitWrapper for D {
     async fn save(&self, user: &User) -> Result<()> {
-        let user = D::to_user_data(&user.get_id().to_string(), &user.get_name().to_string())?;
+        let user = D::to_user_data(
+            &user.get_id().to_string(),
+            &user.get_name().to_string(),
+            user.get_is_premium().to_inner(),
+        )?;
         self.save(&user).await
     }
 
@@ -29,7 +33,8 @@ impl<D: UserDatabaseTrait + Send + Sync> UserDatabaseTraitWrapper for D {
 
         let user_id = UserId::new(&user.0)?;
         let user_name = UserName::new(&user.1)?;
-        let user = User::new(user_id, user_name)?;
+        let is_premium = UserIsPremium::new(user.2);
+        let user = User::new(user_id, user_name, is_premium)?;
 
         Ok(Some(user))
     }
@@ -41,7 +46,8 @@ impl<D: UserDatabaseTrait + Send + Sync> UserDatabaseTraitWrapper for D {
 
         let user_id = UserId::new(&user.0)?;
         let user_name = UserName::new(&user.1)?;
-        let user = User::new(user_id, user_name)?;
+        let is_premium = UserIsPremium::new(user.2);
+        let user = User::new(user_id, user_name, is_premium)?;
 
         Ok(Some(user))
     }

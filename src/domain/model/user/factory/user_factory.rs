@@ -1,5 +1,5 @@
 use super::UserFactoryTrait;
-use crate::domain::model::user::entity::{ UserId, UserName, User };
+use crate::domain::model::user::entity::{User, UserId, UserIsPremium, UserName};
 
 use anyhow::Result;
 
@@ -14,7 +14,8 @@ impl UserFactory {
 impl UserFactoryTrait for UserFactory {
     fn create(&self, name: UserName) -> Result<User> {
         let id = uuid::Uuid::new_v4().to_string();
-        let id = UserId::new(&id).unwrap();
-        User::new(id, name)
+        let id = UserId::new(&id)?;
+        let is_premium = UserIsPremium::new(false);
+        User::new(id, name, is_premium)
     }
 }

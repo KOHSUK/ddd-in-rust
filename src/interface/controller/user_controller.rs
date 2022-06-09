@@ -4,8 +4,9 @@ use anyhow::Result;
 use sqlx::postgres;
 
 use crate::application::user::{
-    UserDeleteCommand, UserDeleteService, UserGetInfoService, UserRegisterService,
-    UserUpdateCommand, UserUpdateInfoService,
+    UserDeleteCommand, UserDeleteService, UserDowngradeCommand, UserDowngradeService,
+    UserGetInfoService, UserRegisterService, UserUpdateCommand, UserUpdateInfoService,
+    UserUpgradeCommand, UserUpgradeService,
 };
 use crate::domain::model::user::factory::UserFactory;
 use crate::infrastructure::database::shared::DATABASE_CONFIG;
@@ -18,6 +19,8 @@ pub struct UserController {
     user_get_info_service: UserGetInfoService,
     user_register_service: UserRegisterService,
     user_update_info_service: UserUpdateInfoService,
+    user_upgrade_service: UserUpgradeService,
+    user_downgrade_service: UserDowngradeService,
 }
 
 pub struct PostArgs {
@@ -41,6 +44,14 @@ pub struct GetResult {
 pub struct PutArgs {
     pub id: String,
     pub name: String,
+}
+
+pub struct PostPremiumArgs {
+    pub id: String,
+}
+
+pub struct DeletePremiumArgs {
+    pub id: String,
 }
 
 impl UserController {
@@ -70,11 +81,19 @@ impl UserController {
         let update_repository = Arc::clone(&user_repository);
         let user_update_info_service = UserUpdateInfoService::new(update_repository);
 
+        let upgrade_repository = Arc::clone(&user_repository);
+        let user_upgrade_service = UserUpgradeService::new(upgrade_repository);
+
+        let downgrade_repository = Arc::clone(&user_repository);
+        let user_downgrade_service = UserDowngradeService::new(downgrade_repository);
+
         Ok(Self {
             user_delete_service,
             user_get_info_service,
             user_register_service,
             user_update_info_service,
+            user_upgrade_service,
+            user_downgrade_service,
         })
     }
 
@@ -102,5 +121,15 @@ impl UserController {
     pub async fn put(&self, args: PutArgs) -> Result<()> {
         let command = UserUpdateCommand::new(&args.id, Some(&args.name));
         self.user_update_info_service.handle(command).await
+    }
+
+    pub async fn post_premium(&self, args: PostPremiumArgs) -> Result<()> {
+        let command = UserUpgradeCommand::new(&args.id);
+        self.user_upgrade_service.handle(command).await
+    }
+
+    pub async fn delete_premium(&self, args: DeletePremiumArgs) -> Result<()> {
+        let command = UserDowngradeCommand::new(&args.id);
+        self.user_downgrade_service.handle(command).await
     }
 }

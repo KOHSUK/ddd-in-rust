@@ -14,7 +14,8 @@ pub struct PostgresUserDatabase {
 impl UserDatabaseTrait for PostgresUserDatabase {
     type UserId = Uuid;
     type UserName = String;
-    type UserData = (Self::UserId, Self::UserName);
+    type UserIsPremium = bool;
+    type UserData = (Self::UserId, Self::UserName, Self::UserIsPremium);
 
     fn from_user_id(id: &Self::UserId) -> Result<String> {
         Ok(id.to_string())
@@ -22,8 +23,11 @@ impl UserDatabaseTrait for PostgresUserDatabase {
     fn from_user_name(name: &Self::UserName) -> Result<String> {
         Ok(name.to_owned())
     }
-    fn from_user_data(user: &Self::UserData) -> Result<(String, String)> {
-        Ok((user.0.to_string(), user.1.to_owned()))
+    fn from_user_is_premium(is_premium: Self::UserIsPremium) -> Result<bool> {
+        Ok(is_premium)
+    }
+    fn from_user_data(user: &Self::UserData) -> Result<(String, String, bool)> {
+        Ok((user.0.to_string(), user.1.to_owned(), user.2))
     }
 
     fn to_user_id(value: &str) -> Result<Self::UserId> {
@@ -32,9 +36,12 @@ impl UserDatabaseTrait for PostgresUserDatabase {
     fn to_user_name(value: &str) -> Result<Self::UserName> {
         Ok(value.to_string())
     }
-    fn to_user_data(id: &str, name: &str) -> Result<Self::UserData> {
+    fn to_user_is_premium(value: bool) -> Result<Self::UserIsPremium> {
+        Ok(value)
+    }
+    fn to_user_data(id: &str, name: &str, is_premium: bool) -> Result<Self::UserData> {
         let id = Uuid::parse_str(id)?;
-        Ok((id, name.to_string()))
+        Ok((id, name.to_string(), is_premium))
     }
 
     async fn save(&self, user: &Self::UserData) -> Result<()> {
@@ -42,17 +49,19 @@ impl UserDatabaseTrait for PostgresUserDatabase {
 
         let user_name = user.1.to_string();
         let user_id = user.0;
+        let is_premium = user.2;
 
         sqlx::query(
             "
-insert into public.user (id, name) values ($1, $2)
+insert into public.user (id, name, is_premium) values ($1, $2, $3)
 on conflict on constraint user_id_key
 do
-update set name = $2; 
+update set name = $2, is_premium = $3; 
             ",
         )
         .bind(user_id)
         .bind(user_name)
+        .bind(is_premium)
         .execute(&mut conn)
         .await?;
 

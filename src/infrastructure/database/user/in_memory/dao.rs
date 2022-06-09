@@ -16,6 +16,7 @@ static STATIC_USER_TABLE: Lazy<Mutex<UserTable>> = Lazy::new(|| {
 struct UserRow {
     id: String,
     name: String,
+    is_premium: bool,
 }
 
 impl UserRow {
@@ -23,6 +24,7 @@ impl UserRow {
         Self {
             id: id.to_string(),
             name: name.to_string(),
+            is_premium: false,
         }
     }
 }
@@ -41,7 +43,8 @@ impl InMemoryUserDatabase {
 impl UserDatabaseTrait for InMemoryUserDatabase {
     type UserId = String;
     type UserName = String;
-    type UserData = (Self::UserId, Self::UserName);
+    type UserIsPremium = bool;
+    type UserData = (Self::UserId, Self::UserName, Self::UserIsPremium);
 
     fn from_user_id(id: &Self::UserId) -> Result<String> {
         Ok(id.to_string())
@@ -49,8 +52,11 @@ impl UserDatabaseTrait for InMemoryUserDatabase {
     fn from_user_name(name: &Self::UserName) -> Result<String> {
         Ok(name.to_owned())
     }
-    fn from_user_data(user: &Self::UserData) -> Result<(String, String)> {
-        Ok((user.0.to_owned(), user.1.to_owned()))
+    fn from_user_is_premium(is_premium: Self::UserIsPremium) -> Result<bool> {
+        Ok(is_premium)
+    }
+    fn from_user_data(user: &Self::UserData) -> Result<(String, String, bool)> {
+        Ok((user.0.to_owned(), user.1.to_owned(), user.2))
     }
 
     fn to_user_id(value: &str) -> Result<Self::UserId> {
@@ -59,8 +65,11 @@ impl UserDatabaseTrait for InMemoryUserDatabase {
     fn to_user_name(value: &str) -> Result<Self::UserName> {
         Ok(value.to_string())
     }
-    fn to_user_data(id: &str, name: &str) -> Result<Self::UserData> {
-        Ok((id.to_string(), name.to_string()))
+    fn to_user_is_premium(value: bool) -> Result<bool> {
+        Ok(value)
+    }
+    fn to_user_data(id: &str, name: &str, is_premium: bool) -> Result<Self::UserData> {
+        Ok((id.to_string(), name.to_string(), is_premium))
     }
 
     async fn save(&self, user: &Self::UserData) -> Result<()> {
@@ -78,7 +87,7 @@ impl UserDatabaseTrait for InMemoryUserDatabase {
             .find(|row| row.1.name == *user_name)
             .map(|row| {
                 let row = row.1.clone();
-                (row.id, row.name)
+                (row.id, row.name, row.is_premium)
             })
             .ok_or_else(|| anyhow!("User not found"))
     }
@@ -94,7 +103,7 @@ impl UserDatabaseTrait for InMemoryUserDatabase {
         let table = STATIC_USER_TABLE.lock().await;
         table
             .get(id)
-            .map(|row| (row.id.to_owned(), row.name.to_owned()))
+            .map(|row| (row.id.to_owned(), row.name.to_owned(), row.is_premium))
             .ok_or_else(|| anyhow!("User not found"))
     }
 }

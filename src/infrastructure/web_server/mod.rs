@@ -4,7 +4,9 @@ use std::io;
 
 use crate::interface::controller::{
     club_controller::{ClubController, PostClubArgs, PostMemberArgs},
-    user_controller::{DeleteArgs, GetArgs, PostArgs, PutArgs, UserController},
+    user_controller::{
+        DeleteArgs, DeletePremiumArgs, GetArgs, PostArgs, PostPremiumArgs, PutArgs, UserController,
+    },
 };
 
 pub struct WebServer;
@@ -20,6 +22,8 @@ impl WebServer {
                 .service(put_user)
                 .service(post_club)
                 .service(post_member)
+                .service(post_premium)
+                .service(delete_premium)
             // .route("/club/{id}/members", web::post().to(post_member))
         })
         .bind(("127.0.0.1", 8080))?
@@ -158,6 +162,34 @@ async fn post_member(
             user_id: body.user_id.to_string(),
         };
         match controller.post_member(args).await {
+            Ok(_) => HttpResponse::Ok().body("OK"),
+            Err(e) => HttpResponse::BadRequest().body(e.to_string()),
+        }
+    } else {
+        HttpResponse::InternalServerError().body("Internal Server Error")
+    }
+}
+
+#[post("/user/{id}/membership")]
+async fn post_premium(path: web::Path<(String,)>) -> impl Responder {
+    let user_id = path.into_inner().0;
+    if let Ok(controller) = UserController::new().await {
+        let args = PostPremiumArgs { id: user_id };
+        match controller.post_premium(args).await {
+            Ok(_) => HttpResponse::Ok().body("OK"),
+            Err(e) => HttpResponse::BadRequest().body(e.to_string()),
+        }
+    } else {
+        HttpResponse::InternalServerError().body("Internal Server Error")
+    }
+}
+
+#[delete("/user/{id}/membership")]
+async fn delete_premium(path: web::Path<(String,)>) -> impl Responder {
+    let user_id = path.into_inner().0;
+    if let Ok(controller) = UserController::new().await {
+        let args = DeletePremiumArgs { id: user_id };
+        match controller.delete_premium(args).await {
             Ok(_) => HttpResponse::Ok().body("OK"),
             Err(e) => HttpResponse::BadRequest().body(e.to_string()),
         }
