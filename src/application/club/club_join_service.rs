@@ -3,11 +3,15 @@ use std::sync::{Arc, Mutex};
 
 use crate::domain::model::{
     club::{
-        entity::ClubId, factory::ClubFactoryTrait, repository::ClubRepositoryTrait,
+        entity::{ClubId, ClubMembers},
+        factory::ClubFactoryTrait,
+        repository::ClubRepositoryTrait,
         service::ClubService,
     },
     user::{entity::UserId, repository::UserRepositoryTrait},
 };
+
+use super::ClubMembersFullSpec;
 
 pub struct ClubJoinCommand {
     user_id: String,
@@ -60,6 +64,18 @@ impl<'a> ClubJoinService {
             .find_by_id(&club_id)
             .await?
             .ok_or_else(|| anyhow!("Could not find the club"))?;
+
+        let user_repo = Arc::clone(&self.user_repository);
+        let owner = user_repo
+            .find_by_id(club.get_owner_id())
+            .await?
+            .ok_or_else(|| anyhow!("Could not find the owner of this club."))?;
+        let members = user_repo.batch_find(club.get_members().clone()).await?;
+        let club_members = ClubMembers::new(club_id, owner, members);
+        let club_full_spec = ClubMembersFullSpec::new();
+        if club_full_spec.is_satisfied_by(club_members) {
+            return Err(anyhow!("Club member is already full."));
+        }
 
         club.join(user)?;
 

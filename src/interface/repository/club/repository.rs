@@ -55,7 +55,12 @@ impl<D: ClubDatabaseTrait + Send + Sync> ClubDatabaseTraitWrapper for D {
         let club_id = ClubId::new(&club.0)?;
         let club_name = ClubName::new(&club.1)?;
         let user_id = UserId::new(&club.2)?;
-        let club = Club::new(club_id, club_name, Vec::new(), user_id)?;
+        let member = club
+            .3
+            .iter()
+            .map(|u| UserId::new(u).unwrap())
+            .collect::<Vec<UserId>>();
+        let club = Club::new(club_id, club_name, member, user_id)?;
 
         Ok(Some(club))
     }

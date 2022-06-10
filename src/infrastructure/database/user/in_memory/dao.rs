@@ -106,4 +106,16 @@ impl UserDatabaseTrait for InMemoryUserDatabase {
             .map(|row| (row.id.to_owned(), row.name.to_owned(), row.is_premium))
             .ok_or_else(|| anyhow!("User not found"))
     }
+
+    async fn batch_find(&self, users: Vec<Self::UserId>) -> Result<Vec<Self::UserData>> {
+        let table = STATIC_USER_TABLE.lock().await;
+        Ok(table
+            .iter()
+            .filter(|u| users.contains(u.0))
+            .map(|row| {
+                let row = row.1.clone();
+                (row.id, row.name, row.is_premium)
+            })
+            .collect())
+    }
 }

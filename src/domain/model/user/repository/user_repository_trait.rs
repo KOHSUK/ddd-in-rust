@@ -9,4 +9,5 @@ pub trait UserRepositoryTrait {
     async fn find_by_name(&self, user_name: &UserName) -> Result<Option<User>>;
     async fn find_by_id(&self, id: &UserId) -> Result<Option<User>>;
     async fn delete(&self, id: &UserId) -> Result<()>;
+    async fn batch_find(&self, users: Vec<UserId>) -> Result<Vec<User>>;
 }

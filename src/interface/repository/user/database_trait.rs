@@ -22,4 +22,5 @@ pub trait UserDatabaseTrait {
     async fn find(&self, user_name: &Self::UserName) -> Result<Self::UserData>;
     async fn find_by_id(&self, id: &Self::UserId) -> Result<Self::UserData>;
     async fn delete(&self, id: &Self::UserId) -> Result<()>;
+    async fn batch_find(&self, users: Vec<Self::UserId>) -> Result<Vec<Self::UserData>>;
 }

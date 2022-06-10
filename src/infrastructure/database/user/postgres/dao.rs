@@ -102,6 +102,26 @@ update set name = $2, is_premium = $3;
 
         Ok(data)
     }
+
+    async fn batch_find(&self, users: Vec<Self::UserId>) -> Result<Vec<Self::UserData>> {
+        let mut conn = self.pool.acquire().await?;
+
+        if users.is_empty() {
+            return Ok(Vec::new());
+        }
+
+        let params = users
+            .iter()
+            .map(|u| format!("'{}'", u))
+            .collect::<Vec<String>>()
+            .join(", ");
+        let query = format!("select * from public.user where id in ({})", params);
+        let data = sqlx::query_as::<_, Self::UserData>(&query)
+            .fetch_all(&mut conn)
+            .await?;
+
+        Ok(data)
+    }
 }
 
 impl PostgresUserDatabase {

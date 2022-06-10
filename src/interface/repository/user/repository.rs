@@ -13,6 +13,7 @@ pub trait UserDatabaseTraitWrapper {
     async fn find_by_name(&self, user_name: &UserName) -> Result<Option<User>>;
     async fn find_by_id(&self, id: &UserId) -> Result<Option<User>>;
     async fn delete(&self, id: &UserId) -> Result<()>;
+    async fn batch_find(&self, users: Vec<UserId>) -> Result<Vec<User>>;
 }
 
 #[async_trait]
@@ -56,6 +57,25 @@ impl<D: UserDatabaseTrait + Send + Sync> UserDatabaseTraitWrapper for D {
         let user_id = D::to_user_id(&user_id.to_string())?;
         self.delete(&user_id).await
     }
+
+    async fn batch_find(&self, users: Vec<UserId>) -> Result<Vec<User>> {
+        let users = users
+            .iter()
+            .map(|u| D::to_user_id(&u.to_string()).unwrap()) // TODO: Rewrite without unwrap
+            .collect::<Vec<D::UserId>>();
+
+        let users = self.batch_find(users).await?;
+        users
+            .iter()
+            .map(|u| D::from_user_data(u).unwrap())
+            .map(|u| {
+                let user_id = UserId::new(&u.0).unwrap();
+                let user_name = UserName::new(&u.1).unwrap();
+                let is_premium = UserIsPremium::new(u.2);
+                User::new(user_id, user_name, is_premium)
+            })
+            .collect()
+    }
 }
 
 pub struct UserRepository {
@@ -78,6 +98,10 @@ impl UserRepositoryTrait for UserRepository {
 
     async fn find_by_id(&self, id: &UserId) -> Result<Option<User>> {
         self.database.find_by_id(id).await
+    }
+
+    async fn batch_find(&self, users: Vec<UserId>) -> Result<Vec<User>> {
+        self.database.batch_find(users).await
     }
 }
 
