@@ -7,11 +7,10 @@ use crate::domain::model::{
         factory::ClubFactoryTrait,
         repository::ClubRepositoryTrait,
         service::ClubService,
+        specifications::ClubMembersFullSpec,
     },
     user::{entity::UserId, repository::UserRepositoryTrait},
 };
-
-use super::ClubMembersFullSpec;
 
 pub struct ClubJoinCommand {
     user_id: String,
