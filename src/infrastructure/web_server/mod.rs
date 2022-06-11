@@ -24,6 +24,7 @@ impl WebServer {
                 .service(post_member)
                 .service(post_premium)
                 .service(delete_premium)
+                .service(get_recommendation)
             // .route("/club/{id}/members", web::post().to(post_member))
         })
         .bind(("127.0.0.1", 8080))?
@@ -191,6 +192,24 @@ async fn delete_premium(path: web::Path<(String,)>) -> impl Responder {
         let args = DeletePremiumArgs { id: user_id };
         match controller.delete_premium(args).await {
             Ok(_) => HttpResponse::Ok().body("OK"),
+            Err(e) => HttpResponse::BadRequest().body(e.to_string()),
+        }
+    } else {
+        HttpResponse::InternalServerError().body("Internal Server Error")
+    }
+}
+
+#[get("/club/recommend")]
+async fn get_recommendation() -> impl Responder {
+    if let Ok(controller) = ClubController::new().await {
+        match controller.get_recommendation().await {
+            Ok(data) => HttpResponse::Ok().body(format!(
+                "[{}]",
+                data.iter()
+                    .map(|d| d.to_string())
+                    .collect::<Vec<String>>()
+                    .join(", ")
+            )),
             Err(e) => HttpResponse::BadRequest().body(e.to_string()),
         }
     } else {

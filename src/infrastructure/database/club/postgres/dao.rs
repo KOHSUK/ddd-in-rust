@@ -1,8 +1,9 @@
-use std::sync::Arc;
+use std::{collections::HashMap, sync::Arc};
 
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use sqlx::{self, types::Uuid, Pool, Postgres};
+use std::sync::Mutex;
 
 use crate::interface::repository::club::{
     ClubDatabaseTrait, PrimitiveId, PrimitiveMembers, PrimitiveName, PrimitiveOwner,
@@ -176,6 +177,42 @@ select $1, $2 where not exists (select 1 from public.club_members where club_id 
             .collect::<Vec<String>>();
 
         Ok((data.0, data.1, data.2, members))
+    }
+
+    async fn find_all(&self) -> Result<Vec<Self::ClubData>> {
+        let mut conn = self.pool.acquire().await?;
+        type Id = Uuid;
+        type Name = String;
+        type Owner = Uuid;
+        type Member = Uuid;
+
+        let data = sqlx::query_as::<_, (Id, Name, Owner, Member)>(
+            "
+            select club.id, club.name, club.owner, public.user.id from club
+            left outer join club_members
+            on club.id = club_members.club_id
+            left outer join public.user
+            on club_members.user_id = public.user.id;
+            ",
+        )
+        .fetch_all(&mut conn)
+        .await?;
+
+        let mut clubs: HashMap<String, Mutex<Self::ClubData>> = HashMap::new();
+        data.iter().for_each(|c| {
+            if let Some(club) = clubs.get(&c.0.to_string()) {
+                let mut club = club.lock().unwrap();
+                club.3.push(c.3.to_string());
+            } else {
+                let club = (c.0, c.1.to_string(), c.2, vec![c.3.to_string()]);
+                clubs.insert(c.0.to_string(), Mutex::new(club));
+            }
+        });
+
+        Ok(clubs
+            .into_values()
+            .map(|a| a.into_inner().unwrap())
+            .collect::<Vec<Self::ClubData>>())
     }
 }
 

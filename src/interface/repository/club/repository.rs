@@ -16,6 +16,7 @@ pub trait ClubDatabaseTraitWrapper {
     async fn save(&self, club: &Club) -> Result<()>;
     async fn find_by_name(&self, club_name: &ClubName) -> Result<Option<Club>>;
     async fn find_by_id(&self, id: &ClubId) -> Result<Option<Club>>;
+    async fn find_all(&self) -> Result<Vec<Club>>;
 }
 
 #[async_trait]
@@ -64,6 +65,22 @@ impl<D: ClubDatabaseTrait + Send + Sync> ClubDatabaseTraitWrapper for D {
 
         Ok(Some(club))
     }
+
+    async fn find_all(&self) -> Result<Vec<Club>> {
+        Ok(self
+            .find_all()
+            .await?
+            .iter()
+            .map(|c| D::from_club_data(c).unwrap())
+            .map(|c| {
+                let id = ClubId::new(&c.0).unwrap();
+                let name = ClubName::new(&c.1).unwrap();
+                let owner = UserId::new(&c.2).unwrap();
+                let members = c.3.iter().map(|u| UserId::new(u).unwrap()).collect();
+                Club::new(id, name, members, owner).unwrap()
+            })
+            .collect())
+    }
 }
 
 pub struct ClubRepository {
@@ -80,6 +97,9 @@ impl ClubRepositoryTrait for ClubRepository {
     }
     async fn find_by_id(&self, id: &ClubId) -> Result<Option<Club>> {
         self.database.find_by_id(id).await
+    }
+    async fn find_all(&self) -> Result<Vec<Club>> {
+        self.database.find_all().await
     }
 }
 

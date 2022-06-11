@@ -73,7 +73,7 @@ impl<'a> ClubJoinService {
         let club_members = ClubMembers::new(club_id, owner, members);
         let club_full_spec = ClubMembersFullSpec::new();
         if club_full_spec.is_satisfied_by(club_members) {
-            return Err(anyhow!("Club member is already full."));
+            return Err(anyhow!("Club is already full."));
         }
 
         club.join(user)?;

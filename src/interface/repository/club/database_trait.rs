@@ -36,4 +36,5 @@ pub trait ClubDatabaseTrait {
     async fn save(&self, club: &Self::ClubData) -> Result<()>;
     async fn find_by_name(&self, club_name: &Self::ClubName) -> Result<Self::ClubData>;
     async fn find_by_id(&self, id: &Self::ClubId) -> Result<Self::ClubData>;
+    async fn find_all(&self) -> Result<Vec<Self::ClubData>>;
 }
